@@ -1,0 +1,2231 @@
+{% extends "base.html" %}
+{% block title %}Summary Report - CMS{% endblock %}
+
+{% block content %}
+<style>
+    /* ─── CSS Variables ─── */
+    :root {
+        --primary: #1a3a5c;
+        --primary-light: #2b5d8d;
+        --primary-dark: #0f2a44;
+        --primary-gradient: linear-gradient(135deg, #1a3a5c 0%, #2b5d8d 100%);
+        --secondary: #e8f0fe;
+        --accent: #00b4a0;
+        --accent-light: #d4f5f0;
+        --bg-body: #f0f4fa;
+        --card-shadow: 0 8px 30px rgba(26, 58, 92, 0.08);
+        --card-hover-shadow: 0 12px 40px rgba(26, 58, 92, 0.14);
+        --radius: 14px;
+        --radius-sm: 8px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .report-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 24px 28px 40px;
+        font-family: var(--font-sans);
+    }
+
+    /* ─── Cards ─── */
+    .report-card {
+        background: #ffffff;
+        border-radius: var(--radius);
+        box-shadow: var(--card-shadow);
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(26, 58, 92, 0.06);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .report-card:hover {
+        box-shadow: var(--card-hover-shadow);
+        border-color: rgba(43, 93, 141, 0.12);
+    }
+    .report-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .report-card:hover::before {
+        opacity: 1;
+    }
+
+    .report-card .card-header-custom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .report-card .card-header-custom h5 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: -0.2px;
+    }
+    .report-card .card-header-custom h5 .header-icon {
+        font-size: 1.3rem;
+        line-height: 1;
+    }
+    .report-card .card-header-custom .card-badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        background: var(--secondary);
+        color: var(--primary-light);
+        border: 1px solid rgba(43, 93, 141, 0.12);
+    }
+
+    /* ─── Header ─── */
+    .report-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 6px;
+    }
+    .report-title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .report-title-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--primary-gradient);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 14px rgba(26, 58, 92, 0.25);
+    }
+    .report-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        letter-spacing: -0.5px;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .report-title .sub {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #8899aa;
+        letter-spacing: 0.2px;
+        display: block;
+        margin-top: 2px;
+    }
+
+    .report-header-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .report-header-actions .btn {
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+        padding: 0.5rem 1.2rem;
+        font-size: 0.8rem;
+        transition: var(--transition);
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .report-header-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+    .btn-fee {
+        background: linear-gradient(135deg, #00b4a0, #008c7a);
+        color: #fff;
+    }
+    .btn-fee:hover {
+        background: linear-gradient(135deg, #00c9b3, #009688);
+    }
+    .btn-fee-input {
+        background: linear-gradient(135deg, #8b5cf6, #6d3b9b);
+        color: #fff;
+    }
+    .btn-fee-input:hover {
+        background: linear-gradient(135deg, #a78bfa, #7c3aed);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(107, 59, 155, 0.3);
+    }
+    .btn-print {
+        background: var(--primary-gradient);
+        color: #fff;
+    }
+    .btn-print:hover {
+        background: linear-gradient(135deg, #1f4a72, #0f2a44);
+    }
+    .btn-csv {
+        background: linear-gradient(135deg, #2d8f47, #1e6b34);
+        color: #fff;
+    }
+    .btn-csv:hover {
+        background: linear-gradient(135deg, #34a054, #237a3b);
+    }
+
+    /* ─── Report Period Bar ─── */
+    .report-period {
+        background: linear-gradient(135deg, #f8faff, #eef4fa);
+        border-radius: var(--radius-sm);
+        padding: 14px 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px 36px;
+        margin-top: 14px;
+        border: 1px solid rgba(26, 58, 92, 0.06);
+        align-items: center;
+    }
+    .report-period .item {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+    .report-period .label {
+        font-weight: 600;
+        color: #6b7a8f;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .report-period .value {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 0.92rem;
+    }
+    .report-period .value .highlight {
+        background: rgba(43, 93, 141, 0.08);
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    /* ─── Filter Bar ─── */
+    .filter-bar {
+        background: #ffffff;
+        border: 1px solid rgba(26, 58, 92, 0.07);
+        border-radius: var(--radius);
+        padding: 16px 22px;
+        margin-bottom: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        transition: var(--transition);
+    }
+    .filter-bar:hover {
+        border-color: rgba(43, 93, 141, 0.15);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+    .filter-bar .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .filter-bar .filter-group label {
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: #4a5a6e;
+        margin: 0;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .filter-bar .filter-group input,
+    .filter-bar .filter-group select {
+        border: 1.5px solid #e2e8f0;
+        border-radius: var(--radius-sm);
+        padding: 6px 12px;
+        font-size: 0.82rem;
+        background: #fafcff;
+        min-width: 130px;
+        transition: var(--transition);
+        color: var(--primary);
+        font-weight: 500;
+        outline: none;
+    }
+    .filter-bar .filter-group input:focus,
+    .filter-bar .filter-group select:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(43, 93, 141, 0.10);
+        background: #fff;
+    }
+    .filter-bar .filter-group input::placeholder {
+        color: #b0bcca;
+        font-weight: 400;
+    }
+
+    .filter-bar .btn-group {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+    }
+    .filter-bar .btn-group .btn {
+        border-radius: var(--radius-sm);
+        padding: 5px 14px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: 1.5px solid transparent;
+        transition: var(--transition);
+        background: #f1f4f9;
+        color: #4a5a6e;
+        cursor: pointer;
+    }
+    .filter-bar .btn-group .btn:hover {
+        background: #e2e8f0;
+    }
+    .filter-bar .btn-group .btn.active {
+        background: var(--primary-gradient);
+        color: #fff;
+        border-color: var(--primary-light);
+        box-shadow: 0 2px 10px rgba(43, 93, 141, 0.20);
+    }
+    .filter-bar .btn-group .btn.active:hover {
+        box-shadow: 0 4px 16px rgba(43, 93, 141, 0.30);
+        transform: translateY(-1px);
+    }
+    .filter-bar .btn-group .btn:not(.active) {
+        border-color: #e2e8f0;
+    }
+
+    .filter-bar .btn-apply {
+        background: var(--primary-gradient);
+        color: #fff;
+        border: none;
+        padding: 6px 18px;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+        font-size: 0.78rem;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .filter-bar .btn-apply:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(43, 93, 141, 0.25);
+    }
+    .filter-bar .btn-reset {
+        background: #f1f4f9;
+        color: #4a5a6e;
+        border: 1.5px solid #e2e8f0;
+        padding: 5px 16px;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 0.78rem;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .filter-bar .btn-reset:hover {
+        background: #e2e8f0;
+        border-color: #c8d0dc;
+    }
+
+    /* ─── Stats Grid ─── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 16px;
+        margin-bottom: 4px;
+    }
+    .stat-item {
+        background: #ffffff;
+        border: 1px solid rgba(26, 58, 92, 0.06);
+        border-radius: var(--radius-sm);
+        padding: 18px 14px 14px;
+        text-align: center;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-item::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 20%;
+        right: 20%;
+        height: 3px;
+        background: var(--primary-gradient);
+        border-radius: 2px 2px 0 0;
+        opacity: 0;
+        transition: var(--transition);
+    }
+    .stat-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(26, 58, 92, 0.08);
+        border-color: rgba(43, 93, 141, 0.15);
+    }
+    .stat-item:hover::after {
+        opacity: 1;
+        left: 10%;
+        right: 10%;
+    }
+    .stat-item .stat-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 6px;
+        font-size: 1.4rem;
+        background: var(--secondary);
+        color: var(--primary-light);
+        transition: var(--transition);
+    }
+    .stat-item:hover .stat-icon-wrap {
+        transform: scale(1.05);
+        background: var(--primary-gradient);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(43, 93, 141, 0.20);
+    }
+    .stat-item .number {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: var(--primary);
+        line-height: 1.2;
+        letter-spacing: -0.5px;
+    }
+    .stat-item .label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #8a9aa8;
+        font-weight: 700;
+        margin-top: 2px;
+    }
+
+    /* ─── Tables ─── */
+    .table-responsive {
+        overflow-x: auto;
+        margin: 0 -4px;
+        border-radius: var(--radius-sm);
+    }
+    .table {
+        width: 100%;
+        font-size: 0.85rem;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+    .table thead th {
+        background: #f1f6fc;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 14px;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .table tbody td {
+        padding: 10px 14px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1f2d3d;
+        font-size: 0.85rem;
+    }
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .table tbody tr {
+        transition: var(--transition);
+    }
+    .table tbody tr:hover {
+        background: #f6faff;
+    }
+    .table tfoot td {
+        padding: 12px 14px;
+        background: #f1f6fc;
+        font-weight: 700;
+        border-top: 2px solid #e2e8f0;
+        color: var(--primary);
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+        background: #fafcff;
+    }
+    .table-striped tbody tr:nth-of-type(odd):hover {
+        background: #f1f6fc;
+    }
+
+    .table .text-end {
+        text-align: right;
+    }
+    .table .text-center {
+        text-align: center;
+    }
+
+    /* ─── Badges ─── */
+    .badge {
+        font-weight: 600;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        display: inline-block;
+        letter-spacing: 0.2px;
+        transition: var(--transition);
+    }
+    .badge-info {
+        background: #e2edfa;
+        color: #1a4b7a;
+    }
+    .badge-success {
+        background: #ddf4e6;
+        color: #0e6b3a;
+    }
+    .badge-primary {
+        background: var(--primary-gradient);
+        color: #fff;
+    }
+    .badge-secondary {
+        background: #edf1f5;
+        color: #4a5a6e;
+    }
+    .badge-warning {
+        background: #fff3d6;
+        color: #8a6d0b;
+    }
+    .badge-teal {
+        background: #d4f5f0;
+        color: #007a6b;
+    }
+    .badge-rose {
+        background: #fce8ec;
+        color: #a82a3a;
+    }
+    .badge-purple {
+        background: #ebe4f7;
+        color: #5a3d8a;
+    }
+
+    /* ─── Empty State ─── */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px 32px;
+        color: #8a9aa8;
+    }
+    .empty-state .empty-icon {
+        font-size: 2.6rem;
+        display: block;
+        margin-bottom: 12px;
+        opacity: 0.6;
+    }
+    .empty-state p {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #6b7a8f;
+        margin: 0;
+    }
+
+    /* ─── Toggle Button ─── */
+    .toggle-details-btn {
+        background: none;
+        border: none;
+        color: var(--primary-light);
+        font-weight: 600;
+        font-size: 0.78rem;
+        cursor: pointer;
+        padding: 4px 14px;
+        border-radius: 20px;
+        transition: var(--transition);
+        background: var(--secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .toggle-details-btn:hover {
+        background: #d4e2f5;
+        color: var(--primary-dark);
+        transform: scale(1.02);
+    }
+
+    /* ─── MODAL ─── */
+    #feeModalOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 99999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: overlayFade 0.25s ease;
+    }
+    #feeModalOverlay.active {
+        display: flex;
+    }
+    @keyframes overlayFade {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    #feeModal {
+        background: #ffffff;
+        border-radius: 18px;
+        max-width: 900px;
+        width: 100%;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
+        animation: modalSlide 0.3s ease;
+        overflow: hidden;
+    }
+    @keyframes modalSlide {
+        from { opacity: 0; transform: translateY(-30px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ─── Modal Header ─── */
+    .modal-header-custom {
+        background: linear-gradient(135deg, #0a1a2e 0%, #1a3a5c 50%, #1a4a7a 100%);
+        color: #fff;
+        padding: 20px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+        margin-top: 25px;
+    }
+    .modal-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .modal-header-icon {
+        font-size: 1.6rem;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .modal-header-custom h5 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.2rem;
+        letter-spacing: -0.2px;
+        line-height: 1.2;
+        color: #fff;
+    }
+    .modal-header-sub {
+        font-weight: 400;
+        font-size: 0.8rem;
+        opacity: 0.8;
+        display: block;
+        margin-top: 1px;
+        color: #b0d0f0;
+    }
+
+    .modal-close-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .modal-close-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: rotate(90deg) scale(1.05);
+    }
+    .modal-close-btn svg {
+        stroke: #fff;
+    }
+
+    /* ─── Modal Body ─── */
+    .fee-modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 28px;
+        background: #f8faff;
+    }
+    .fee-modal-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .fee-modal-body::-webkit-scrollbar-track {
+        background: #eef2f7;
+        border-radius: 4px;
+    }
+    .fee-modal-body::-webkit-scrollbar-thumb {
+        background: #c8d4e0;
+        border-radius: 4px;
+    }
+    .fee-modal-body::-webkit-scrollbar-thumb:hover {
+        background: #b0bcca;
+    }
+
+    /* ─── Date Filter ─── */
+    .modal-date-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 16px;
+        margin-bottom: 20px;
+        padding: 14px 20px;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e8edf4;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .date-filter-row {
+        display: flex;
+        align-items: center;
+        gap: 12px 20px;
+        flex-wrap: wrap;
+    }
+    .date-filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .date-filter-group label {
+        font-weight: 700;
+        font-size: 0.7rem;
+        color: #4a5a6e;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .date-filter-group input[type="date"] {
+        padding: 6px 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        background: #fafcff;
+        color: var(--primary);
+        font-weight: 500;
+        outline: none;
+        transition: all 0.2s ease;
+        min-width: 140px;
+    }
+    .date-filter-group input[type="date"]:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(43, 93, 141, 0.1);
+        background: #fff;
+    }
+
+    .date-filter-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .date-filter-actions .btn-apply-modal {
+        padding: 6px 18px;
+        background: linear-gradient(135deg, #1a3a5c, #2b5d8d);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .date-filter-actions .btn-apply-modal:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(43, 93, 141, 0.25);
+    }
+    .date-filter-actions .btn-reset-modal {
+        padding: 6px 16px;
+        background: #f1f4f9;
+        color: #4a5a6e;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .date-filter-actions .btn-reset-modal:hover {
+        background: #e2e8f0;
+    }
+    .date-filter-actions .btn-print-modal {
+        padding: 6px 16px;
+        background: linear-gradient(135deg, #0f2a44, #1a3a5c);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .date-filter-actions .btn-print-modal:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26, 58, 92, 0.25);
+    }
+    .date-filter-actions .btn-print-modal svg {
+        stroke: #fff;
+    }
+
+    /* ─── Fee Tabs ─── */
+    .fee-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #edf2f7;
+        padding-bottom: 0;
+    }
+    .fee-tab {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 10px 10px 0 0;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        background: transparent;
+        color: #6b7a8f;
+        transition: all 0.25s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .fee-tab .tab-icon {
+        font-size: 1.1rem;
+    }
+    .fee-tab::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        width: 0;
+        height: 3px;
+        background: linear-gradient(135deg, #1a3a5c, #2b5d8d);
+        border-radius: 3px 3px 0 0;
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
+    .fee-tab.active {
+        color: var(--primary);
+        background: #f1f6fc;
+    }
+    .fee-tab.active::after {
+        width: 70%;
+    }
+    .fee-tab:hover:not(.active) {
+        color: var(--primary-light);
+        background: #f5f8fc;
+    }
+
+    /* ─── Modal Footer ─── */
+    .fee-modal-footer {
+        padding: 14px 28px;
+        border-top: 1px solid #edf2f7;
+        text-align: right;
+        background: #ffffff;
+        flex-shrink: 0;
+        border-radius: 0 0 18px 18px;
+    }
+    .modal-footer-close {
+        background: #f1f4f9;
+        border: none;
+        padding: 8px 28px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #4a5a6e;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .modal-footer-close:hover {
+        background: #e2e8f0;
+    }
+
+    .signature-footer {
+        margin-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--primary);
+        border-top: 2px solid #eef2f7;
+        padding-top: 18px;
+        flex-wrap: wrap;
+        gap: 12px 20px;
+        page-break-inside: avoid;
+        font-weight: 500;
+    }
+    .signature-footer span {
+        display: inline-block;
+        min-width: 140px;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 2px;
+        margin-left: 6px;
+        font-weight: 400;
+        color: #4a5a6e;
+    }
+
+    /* ─── CAMMED Logo ─── */
+    .cammed-header {
+        text-align: center;
+        font-family: 'Montserrat', system-ui, sans-serif;
+        font-weight: 900;
+        font-size: 1.9rem;
+        letter-spacing: -0.5px;
+        margin-bottom: 2px;
+        line-height: 1.2;
+    }
+    .cammed-header .cm {
+        color: #1a3a5c;
+    }
+    .cammed-header .red-a {
+        color: #c0392b;
+    }
+    .cammed-header .lab {
+        color: #1a3a5c;
+        font-weight: 700;
+    }
+    .cammed-sub {
+        text-align: center;
+        font-size: 0.7rem;
+        color: #8a9aa8;
+        letter-spacing: 1.5px;
+        margin-top: -2px;
+        margin-bottom: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    .member-header {
+        margin-bottom: 14px;
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 1.05rem;
+        text-align: center;
+        letter-spacing: -0.2px;
+        background: var(--secondary);
+        padding: 8px 16px;
+        border-radius: var(--radius-sm);
+        display: inline-block;
+        width: auto;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .print-time {
+        text-align: right;
+        font-size: 0.7rem;
+        color: #8a9aa8;
+        margin-bottom: 10px;
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+
+    /* ─── Print Container ─── */
+    #printContainer {
+        display: none;
+    }
+
+    /* ─── Print Styles ─── */
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .report-card {
+            box-shadow: none !important;
+            border: 1px solid #dce2ea !important;
+            page-break-inside: avoid;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            border-radius: 4px;
+            background: #fff !important;
+        }
+        .report-card::before {
+            display: none !important;
+        }
+        .filter-bar {
+            display: none !important;
+        }
+        .report-header {
+            display: none !important;
+        }
+        .report-container {
+            padding: 0 10px !important;
+        }
+        .table {
+            font-size: 0.7rem !important;
+        }
+        .table thead th {
+            background: #eef2f7 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .stat-item {
+            border: 1px solid #dce2ea !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .stat-item .stat-icon-wrap {
+            background: #eef2f7 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .report-period {
+            background: #f5f8fc !important;
+            border: 1px solid #dce2ea !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .toggle-details-btn {
+            display: none !important;
+        }
+        #detailsTable {
+            display: block !important;
+        }
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 10px !important;
+        }
+        body {
+            background: #fff !important;
+        }
+        .badge {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .badge-primary {
+            background: #1a3a5c !important;
+            color: #fff !important;
+        }
+        .badge-success {
+            background: #ddf4e6 !important;
+            color: #0e6b3a !important;
+        }
+        .badge-info {
+            background: #e2edfa !important;
+            color: #1a4b7a !important;
+        }
+        .badge-teal {
+            background: #d4f5f0 !important;
+            color: #007a6b !important;
+        }
+        .table tfoot td {
+            background: #eef2f7 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .report-card .card-header-custom h5 {
+            font-size: 0.9rem !important;
+        }
+        .stat-item .number {
+            font-size: 1.3rem !important;
+        }
+        .signature-footer {
+            border-top-color: #dce2ea !important;
+        }
+        .signature-footer span {
+            border-bottom-color: var(--primary) !important;
+        }
+        .cammed-header {
+            font-size: 1.4rem !important;
+        }
+        #feeModalOverlay {
+            display: none !important;
+        }
+        #printContainer {
+            display: none !important;
+        }
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 1024px) {
+        .report-container {
+            padding: 16px 18px 30px;
+        }
+        .report-card {
+            padding: 18px 20px;
+        }
+    }
+    @media (max-width: 768px) {
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 14px 16px;
+        }
+        .filter-bar .filter-group {
+            flex-wrap: wrap;
+        }
+        .filter-bar .filter-group input,
+        .filter-bar .filter-group select {
+            width: 100%;
+            min-width: unset;
+        }
+        .filter-bar .btn-group {
+            flex-wrap: wrap;
+        }
+        .filter-bar .btn-group .btn {
+            flex: 1;
+            text-align: center;
+            min-width: 60px;
+        }
+        .report-period {
+            gap: 10px 18px;
+            padding: 12px 16px;
+        }
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .stat-item {
+            padding: 14px 10px 10px;
+        }
+        .stat-item .number {
+            font-size: 1.3rem;
+        }
+        .stat-item .stat-icon-wrap {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+        }
+        .report-title {
+            font-size: 1.2rem;
+        }
+        .report-title .sub {
+            font-size: 0.65rem;
+        }
+        .report-title-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.3rem;
+        }
+        .report-header-actions .btn {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.9rem;
+        }
+        .report-card .card-header-custom h5 {
+            font-size: 0.92rem;
+        }
+        .modal-date-filter {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .date-filter-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .date-filter-group {
+            flex-wrap: wrap;
+        }
+        .date-filter-group input[type="date"] {
+            flex: 1;
+            min-width: 100px;
+        }
+        .date-filter-actions {
+            justify-content: stretch;
+        }
+        .date-filter-actions button {
+            flex: 1;
+            justify-content: center;
+        }
+        .fee-tabs {
+            flex-wrap: wrap;
+        }
+        .fee-tab {
+            padding: 8px 16px;
+            font-size: 0.78rem;
+        }
+        .signature-footer {
+            flex-direction: column;
+            gap: 8px;
+        }
+        .report-container {
+            padding: 12px 12px 24px;
+        }
+        .report-card {
+            padding: 14px 14px;
+        }
+        #feeModal {
+            max-height: 95vh;
+        }
+        .modal-header-custom {
+            padding: 16px 20px;
+        }
+        .modal-header-custom h5 {
+            font-size: 1rem;
+        }
+        .modal-header-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 1.3rem;
+        }
+        .modal-close-btn {
+            width: 38px;
+            height: 38px;
+        }
+        .modal-close-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        .fee-modal-body {
+            padding: 18px 16px;
+        }
+        .fee-modal-footer {
+            padding: 12px 16px;
+        }
+    }
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        .report-period {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .report-period .item {
+            width: 100%;
+        }
+        .report-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .report-header-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        .report-title-wrapper {
+            width: 100%;
+        }
+        .report-title-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+        }
+        .report-title {
+            font-size: 1rem;
+        }
+        .filter-bar .filter-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-bar .filter-group label {
+            margin-bottom: 2px;
+        }
+        .filter-bar .filter-group input,
+        .filter-bar .filter-group select {
+            width: 100%;
+        }
+        .filter-bar .btn-group .btn {
+            flex: 1;
+            font-size: 0.65rem;
+            padding: 4px 8px;
+        }
+        .stat-item .number {
+            font-size: 1.1rem;
+        }
+        .stat-item .label {
+            font-size: 0.55rem;
+        }
+        .table {
+            font-size: 0.75rem;
+        }
+        .table thead th,
+        .table tbody td,
+        .table tfoot td {
+            padding: 6px 8px;
+        }
+        .badge {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+        }
+        .report-card .card-header-custom {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .toggle-details-btn {
+            font-size: 0.7rem;
+            padding: 2px 12px;
+        }
+        #feeModal {
+            max-height: 95vh;
+            border-radius: 14px;
+        }
+        .modal-header-custom {
+            padding: 14px 16px;
+        }
+        .modal-header-left {
+            gap: 10px;
+        }
+        .modal-header-icon {
+            width: 34px;
+            height: 34px;
+            font-size: 1.1rem;
+        }
+        .modal-header-custom h5 {
+            font-size: 0.9rem;
+        }
+        .modal-header-sub {
+            font-size: 0.7rem;
+        }
+        .modal-close-btn {
+            width: 34px;
+            height: 34px;
+        }
+        .modal-close-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .fee-modal-body {
+            padding: 14px 12px;
+        }
+        .modal-date-filter {
+            padding: 10px 14px;
+        }
+        .date-filter-group label {
+            font-size: 0.6rem;
+        }
+        .date-filter-group input[type="date"] {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            min-width: 80px;
+        }
+        .date-filter-actions button {
+            font-size: 0.65rem;
+            padding: 4px 12px;
+        }
+        .fee-tab {
+            font-size: 0.7rem;
+            padding: 6px 12px;
+        }
+        .fee-tab .tab-icon {
+            font-size: 0.9rem;
+        }
+        .fee-modal-footer {
+            padding: 10px 14px;
+        }
+        .modal-footer-close {
+            padding: 6px 20px;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<div class="report-container">
+    <!-- ─── FILTER BAR ─── -->
+    <div class="filter-bar no-print">
+        <div class="filter-group">
+            <label>📅 Period</label>
+            <div class="btn-group">
+                <a href="/report?type=daily&value={{ today.strftime('%Y-%m-%d') }}"
+                   class="btn {% if report_type == 'daily' and not from_date %}active{% endif %}">Today</a>
+                <a href="/report?type=weekly&value={{ today.strftime('%Y-%m-%d') }}"
+                   class="btn {% if report_type == 'weekly' and not from_date %}active{% endif %}">This Week</a>
+                <a href="/report?type=monthly&value={{ today.strftime('%Y-%m') }}"
+                   class="btn {% if report_type == 'monthly' and not from_date %}active{% endif %}">This Month</a>
+                <a href="/report?type=yearly&value={{ today.strftime('%Y') }}"
+                   class="btn {% if report_type == 'yearly' and not from_date %}active{% endif %}">This Year</a>
+            </div>
+        </div>
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" id="from_date" value="{{ from_date or '' }}">
+            <label>To</label>
+            <input type="date" id="to_date" value="{{ to_date or '' }}">
+            <button class="btn-apply" onclick="applyDateRange()">Apply</button>
+            <button class="btn-reset" onclick="resetDateRange()">Reset</button>
+        </div>
+        {% if session.get('is_admin') %}
+        <div class="filter-group">
+            <label>👤 Collector</label>
+            <select id="collector_filter">
+                <option value="">All Collectors</option>
+                {% for c in all_collectors %}
+                <option value="{{ c.username }}" {% if filter_collector == c.username %}selected{% endif %}>{{ c.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <div class="filter-group">
+            <label>🏥 Facility</label>
+            <select id="facility_filter">
+                <option value="">All</option>
+                {% for f in all_facilities %}
+                <option value="{{ f }}" {% if filter_facility == f %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>🧪 Sample</label>
+            <select id="sample_type_filter">
+                <option value="">All</option>
+                {% for st in all_sample_types %}
+                <option value="{{ st }}" {% if filter_sample_type == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group" style="margin-left:auto;">
+            <button class="btn-apply" onclick="applyFilters()">Apply Filters</button>
+            <a href="/report?type=monthly&value={{ today.strftime('%Y-%m') }}" class="btn-reset">Clear</a>
+        </div>
+    </div>
+
+    <!-- ─── REPORT HEADER ─── -->
+    <div class="report-card" style="padding-bottom:8px;">
+        <div class="report-header">
+            <div class="report-title-wrapper">
+                <div class="report-title-icon">📊</div>
+                <div>
+                    <div class="report-title">
+                        Summary Report
+                        <span class="sub">Comprehensive collection overview</span>
+                    </div>
+                </div>
+            </div>
+            <div class="report-header-actions no-print">
+                <button class="btn btn-fee" onclick="openFeeModal()">💰 Fee Detail</button>
+                <a href="/fee_input{% if from_date %}?from_date={{ from_date }}&to_date={{ to_date }}{% endif %}{% if filter_collector %}&collector={{ filter_collector }}{% endif %}"
+                   class="btn btn-fee-input">✏️ Fee Input</a>
+                <a href="/print_report?type={{ report_type }}&value={{ report_value }}{% if from_date %}&from_date={{ from_date }}&to_date={{ to_date }}{% endif %}{% if filter_collector %}&collector={{ filter_collector }}{% endif %}"
+                   target="_blank" class="btn btn-print">🖨️ Print</a>
+                <a href="/export_csv?from_date={{ from_date or '' }}&to_date={{ to_date or '' }}&collector={{ filter_collector or '' }}"
+                   class="btn btn-csv">📥 CSV</a>
+            </div>
+        </div>
+
+        <!-- Report period -->
+        <div class="report-period">
+            <div class="item">
+                <span class="label">📆 Period</span>
+                <span class="value">
+                    {% if from_date and to_date %}
+                    <span class="highlight">{{ from_date }}</span> → <span class="highlight">{{ to_date }}</span>
+                    {% elif report_type == 'daily' %}
+                    <span class="highlight">{{ report_value }}</span>
+                    {% elif report_type == 'monthly' %}
+                    <span class="highlight">{{ report_value }}</span>
+                    {% elif report_type == 'yearly' %}
+                    <span class="highlight">{{ report_value }}</span>
+                    {% else %}
+                    <span class="highlight">Custom</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="item">
+                <span class="label">👤 Collector</span>
+                <span class="value">
+                    {% if session.get('is_admin') and filter_collector %}
+                    {{ filter_collector }}
+                    {% else %}
+                    {{ member.full_name }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="item">
+                <span class="label">🕐 Generated</span>
+                <span class="value">{{ now.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Statistics -->
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">📈</span> Key Metrics</h5>
+            <span class="card-badge">Overview</span>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon-wrap">👤</div>
+                <div class="number">{{ total_patients }}</div>
+                <div class="label">Patients / Samples</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon-wrap">📦</div>
+                <div class="number">{{ total_specimens }}</div>
+                <div class="label">Specimens / Packs</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon-wrap">🧪</div>
+                <div class="number">{{ avg_specimens_per_patient }}</div>
+                <div class="label">Avg Specimens / Patient</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon-wrap">📅</div>
+                <div class="number">{{ collection_days }}</div>
+                <div class="label">Collection Days</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon-wrap">🏥</div>
+                <div class="number">{{ total_facilities }}</div>
+                <div class="label">Facilities</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon-wrap">👨‍⚕️</div>
+                <div class="number">{{ total_doctors }}</div>
+                <div class="label">Doctors</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Specimen Breakdown -->
+    {% if type_summary %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">🧪</span> Specimen Breakdown</h5>
+            <span class="card-badge">{{ type_summary|length }} types</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Specimen Type</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stype, count in type_summary.items() %}
+                    {% set pct = (count / total_specimens * 100) if total_specimens > 0 else 0 %}
+                    <tr>
+                        <td><span class="badge badge-info">{{ stype }}</span></td>
+                        <td class="text-end"><strong>{{ count }}</strong></td>
+                        <td class="text-end">{{ "%.1f"|format(pct) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td class="text-end"><strong>{{ total_specimens }}</strong></td>
+                        <td class="text-end"><strong>100%</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4. Collection by Facility -->
+    {% if location_summary %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">🏥</span> Collection by Facility</h5>
+            <span class="card-badge">{{ location_summary|length }} facilities</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Facility</th>
+                        <th class="text-end">Patients</th>
+                        <th class="text-end">Specimens</th>
+                        <th class="text-end">Avg / Patient</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loc, data in location_summary.items() %}
+                    {% set avg = (data.specimens / data.patients) if data.patients > 0 else 0 %}
+                    <tr>
+                        <td><span class="badge badge-purple">{{ loc }}</span></td>
+                        <td class="text-end">{{ data.patients }}</td>
+                        <td class="text-end">{{ data.specimens }}</td>
+                        <td class="text-end">{{ "%.1f"|format(avg) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td class="text-end"><strong>{{ total_patients }}</strong></td>
+                        <td class="text-end"><strong>{{ total_specimens }}</strong></td>
+                        <td class="text-end"><strong>{{ avg_specimens_per_patient }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 5. Daily Collection Summary -->
+    {% if daily_summary %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">📅</span> Daily Collection Summary</h5>
+            <span class="card-badge">{{ daily_summary|length }} days</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th class="text-end">Patients</th>
+                        <th class="text-end">Specimens</th>
+                        <th class="text-end">Avg / Patient</th>
+                        <th class="text-end">Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in daily_summary %}
+                    {% set trend_icon = '📈' if day.avg|float > 2.0 else '📊' if day.avg|float > 1.0 else '📉' %}
+                    <tr>
+                        <td><span class="badge badge-secondary">{{ day.date }}</span></td>
+                        <td class="text-end">{{ day.patients }}</td>
+                        <td class="text-end"><span class="badge badge-success">{{ day.specimens }}</span></td>
+                        <td class="text-end">{{ day.avg }}</td>
+                        <td class="text-end" style="font-size:1.1rem;">{{ trend_icon }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td class="text-end"><strong>{{ total_patients }}</strong></td>
+                        <td class="text-end"><strong>{{ total_specimens }}</strong></td>
+                        <td class="text-end"><strong>{{ avg_specimens_per_patient }}</strong></td>
+                        <td class="text-end">—</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 6. Collector Performance (admin only) -->
+    {% if session.get('is_admin') and collector_performance %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">👨‍⚕️</span> Collector Performance</h5>
+            <span class="card-badge">Admin</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Collector</th>
+                        <th class="text-end">Patients</th>
+                        <th class="text-end">Specimens</th>
+                        <th class="text-end">Days</th>
+                        <th class="text-end">Avg / Day</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in collector_performance %}
+                    {% set avg_day = (c.patients / c.days) if c.days > 0 else 0 %}
+                    <tr>
+                        <td><span class="badge badge-primary">{{ c.full_name }}</span></td>
+                        <td class="text-end">{{ c.patients }}</td>
+                        <td class="text-end">{{ c.specimens }}</td>
+                        <td class="text-end">{{ c.days }}</td>
+                        <td class="text-end">{{ "%.1f"|format(avg_day) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 7. Collection Time Information -->
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">⏱️</span> Collection Time</h5>
+            <span class="card-badge">Efficiency</span>
+        </div>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px,1fr));">
+            <div class="stat-item">
+                <div class="stat-icon-wrap">⏳</div>
+                <div class="number">{{ avg_duration_display }}</div>
+                <div class="label">Avg Call → Receive</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Notes / Exceptions -->
+    {% if notes_records %}
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5><span class="header-icon">⚠️</span> Exceptions &amp; Remarks</h5>
+            <span class="card-badge">{{ notes_records|length }} notes</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Facility</th>
+                        <th>Doctor</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in notes_records %}
+                    <tr>
+                        <td><span class="badge badge-secondary">{{ r.date.strftime('%Y-%m-%d') }}</span></td>
+                        <td>{{ r.location or '-' }}</td>
+                        <td>{{ r.doctor or '-' }}</td>
+                        <td><span class="badge badge-warning">{{ r.notes }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 9. Detailed Records (toggleable) -->
+    <div class="report-card">
+        <div class="card-header-custom">
+            <h5>
+                <span class="header-icon">📋</span> Detailed Records
+            </h5>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="card-badge">{{ records|length }} entries</span>
+                <button class="toggle-details-btn no-print" onclick="toggleDetails()">👁️ Toggle</button>
+            </div>
+        </div>
+        <div id="detailsTable" style="display:none;">
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Doctor</th>
+                            <th>Call</th>
+                            <th>Receive</th>
+                            <th>Dur</th>
+                            <th class="text-end">Patients</th>
+                            <th class="text-end">Specimens</th>
+                            <th class="text-end">Moto</th>
+                            <th class="text-end">Far</th>
+                            <th class="text-end">Total</th>
+                            <th>Types</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td><span class="badge badge-secondary">{{ r.date.strftime('%Y-%m-%d') }}</span></td>
+                            <td>{{ r.location or '-' }}</td>
+                            <td>{{ r.doctor or '-' }}</td>
+                            <td>{{ r.call_time or '-' }}</td>
+                            <td>{{ r.receive_time or '-' }}</td>
+                            <td>{% if r.duration %}<span class="badge badge-info">{{ r.duration }}</span>{% else %}-{% endif %}</td>
+                            <td class="text-end">{{ r.patient_count }}</td>
+                            <td class="text-end"><span class="badge badge-success">{{ r.total_sampling }}</span></td>
+                            <td class="text-end">{{ r.moto_fee or 0 }}</td>
+                            <td class="text-end">{{ r.far_away_fee or 0 }}</td>
+                            <td class="text-end"><span class="badge badge-primary">{{ (r.moto_fee or 0) + (r.far_away_fee or 0) }}</span></td>
+                            <td><small>{{ get_sample_types_display(r.sample_types_json) }}</small></td>
+                            <td><small>{{ r.notes[:30] if r.notes else '-' }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="text-end"><strong>TOTAL</strong></td>
+                            <td class="text-end"><strong>{{ total_patients }}</strong></td>
+                            <td class="text-end"><strong>{{ total_specimens }}</strong></td>
+                            <td class="text-end"><strong>{{ total_moto_fee }}</strong></td>
+                            <td class="text-end"><strong>{{ total_far_away_fee }}</strong></td>
+                            <td class="text-end"><strong>{{ total_fees }}</strong></td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        {% if not records %}
+        <div class="empty-state">
+            <span class="empty-icon">🧪</span>
+            <p>No records found for this period.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ─── FEE DETAIL MODAL ─── -->
+<div id="feeModalOverlay" class="no-print" onclick="closeFeeModalOutside(event)">
+    <div id="feeModal" onclick="event.stopPropagation();">
+        <div class="modal-header-custom">
+            <div class="modal-header-left">
+                <span class="modal-header-icon">💰</span>
+                <div>
+                    <h5>Fee Details</h5>
+                    <span class="modal-header-sub">{{ member.full_name }}</span>
+                </div>
+            </div>
+            <button class="modal-close-btn" onclick="closeFeeModal()" aria-label="Close modal">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="fee-modal-body">
+            <!-- Date Filter -->
+            <div class="modal-date-filter">
+                <div class="date-filter-row">
+                    <div class="date-filter-group">
+                        <label for="modalFromDate">FROM</label>
+                        <input type="date" id="modalFromDate" value="{{ from_date or '' }}">
+                    </div>
+                    <div class="date-filter-group">
+                        <label for="modalToDate">TO</label>
+                        <input type="date" id="modalToDate" value="{{ to_date or '' }}">
+                    </div>
+                </div>
+                <div class="date-filter-actions">
+                    <button class="btn-apply-modal" onclick="applyModalDateRange()">Apply</button>
+                    <button class="btn-reset-modal" onclick="resetModalDateRange()">Reset</button>
+                    <button class="btn-print-modal" onclick="printFeeDetail()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M18 9H6"></path>
+                            <path d="M18 13H6"></path>
+                            <path d="M18 17H6"></path>
+                            <rect x="4" y="9" width="16" height="11" rx="2"></rect>
+                        </svg>
+                        Print
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="fee-tabs">
+                <button class="fee-tab active" data-fee="moto" onclick="switchFeeTab('moto')">
+                    <span class="tab-icon">🛵</span> Moto Fee
+                </button>
+                <button class="fee-tab" data-fee="far" onclick="switchFeeTab('far')">
+                    <span class="tab-icon">🚗</span> Far Away Fee
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div id="feePrintContent"></div>
+        </div>
+        <div class="fee-modal-footer">
+            <button class="modal-footer-close" onclick="closeFeeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── PRINT CONTAINER ─── -->
+<div id="printContainer" style="display:none;"></div>
+
+<script>
+    // ── Data ──
+    const recordsData = [
+        {% for r in records %}
+        {
+            id: {{ r.id }},
+            date: '{{ r.date.strftime("%Y-%m-%d") }}',
+            location: '{{ r.location or "-" }}',
+            moto_fee: {{ r.moto_fee or 0 }},
+            far_away_fee: {{ r.far_away_fee or 0 }},
+            total_sampling: {{ r.total_sampling }},
+            patient_count: {{ r.patient_count if r.patient_count is not none else 1 }},
+            notes: '{{ r.notes or "-" }}',
+            doctor: '{{ r.doctor or "-" }}',
+            call_time: '{{ r.call_time or "-" }}',
+            receive_time: '{{ r.receive_time or "-" }}'
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    const memberName = '{{ member.full_name }}';
+    const generatedTime = '{{ now.strftime("%Y-%m-%d %H:%M:%S") }}';
+
+    let activeFeeTab = 'moto';
+
+    function parseDate(str) {
+        if (!str) return null;
+        const parts = str.split('-');
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
+    function renderFeeTable(type) {
+        const container = document.getElementById('feePrintContent');
+        const feeField = type === 'moto' ? 'moto_fee' : 'far_away_fee';
+        const feeLabel = type === 'moto' ? 'Moto Fee' : 'Far Away Fee';
+        const feeEmoji = type === 'moto' ? '🛵' : '🚗';
+
+        let filtered = recordsData.filter(r => r[feeField] > 0);
+        const fromDate = document.getElementById('modalFromDate').value;
+        const toDate = document.getElementById('modalToDate').value;
+        if (fromDate && toDate) {
+            const from = parseDate(fromDate);
+            const to = parseDate(toDate);
+            if (from && to) {
+                filtered = filtered.filter(r => {
+                    const d = parseDate(r.date);
+                    return d >= from && d <= to;
+                });
+            }
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><p>No records with ${feeLabel} &gt; 0 in the selected date range.</p></div>`;
+            return;
+        }
+
+        // Group by date + location
+        const groups = {};
+        filtered.forEach(r => {
+            const key = r.date + '|' + r.location;
+            if (!groups[key]) {
+                groups[key] = { date: r.date, location: r.location, count: 0, totalFee: 0, records: [] };
+            }
+            groups[key].count += 1;
+            groups[key].totalFee += r[feeField];
+            groups[key].records.push(r);
+        });
+
+        const groupArray = Object.values(groups);
+        groupArray.sort((a, b) => a.date.localeCompare(b.date) || a.location.localeCompare(b.location));
+
+        let rows = '';
+        let grandTotal = 0;
+        groupArray.forEach((g, index) => {
+            grandTotal += g.totalFee;
+            rows += `<tr>
+                <td>${index + 1}</td>
+                <td><span class="badge badge-secondary">${g.date}</span></td>
+                <td><strong>${g.location}</strong></td>
+                <td>${g.count}</td>
+                <td><span class="badge badge-teal">${g.totalFee}</span></td>
+            </tr>`;
+        });
+
+        container.innerHTML = `
+            <div class="print-time">Generated: ${generatedTime}</div>
+            <div class="cammed-header">
+                <span class="cm">C</span><span class="red-a">A</span><span class="cm">MMED</span>
+                <span class="lab">LAB</span>
+            </div>
+            <div class="cammed-sub">Leading Diagnostics</div>
+            <div class="member-header">👤 ${memberName}</div>
+            <div style="margin-bottom:12px;font-weight:600;color:var(--primary);font-size:0.95rem;text-align:center;">
+                ${feeEmoji} ${feeLabel} Summary
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped fee-detail-table">
+                    <thead><tr><th>No.</th><th>Date</th><th>Location</th><th>Times</th><th>${feeLabel}</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                    <tfoot><tr class="fee-total-row"><td colspan="4" class="text-end"><strong>TOTAL ${feeLabel}</strong></td><td><span class="badge badge-primary">${grandTotal}</span></td></tr></tfoot>
+                </table>
+            </div>
+            <div class="signature-footer">
+                <div>Prepared by: <span>____________________</span></div>
+                <div>Verified by: <span>____________________</span></div>
+                <div>Received by: <span>____________________</span></div>
+            </div>
+        `;
+    }
+
+    function switchFeeTab(type) {
+        activeFeeTab = type;
+        document.querySelectorAll('.fee-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.fee === type);
+        });
+        renderFeeTable(type);
+    }
+
+    function applyModalDateRange() {
+        const from = document.getElementById('modalFromDate').value;
+        const to = document.getElementById('modalToDate').value;
+        if (from && to && from > to) { alert('From date must be before To date.'); return; }
+        renderFeeTable(activeFeeTab);
+    }
+
+    function resetModalDateRange() {
+        document.getElementById('modalFromDate').value = '';
+        document.getElementById('modalToDate').value = '';
+        renderFeeTable(activeFeeTab);
+    }
+
+    // ─── Print Fee Detail in a new window ───
+    function printFeeDetail() {
+        renderFeeTable(activeFeeTab);
+        const printContent = document.getElementById('feePrintContent').innerHTML;
+        const win = window.open('', '_blank', 'width=1000,height=800,scrollbars=yes');
+        if (!win) {
+            alert('Please allow popups for this site.');
+            return;
+        }
+        win.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Fee Detail - ${memberName}</title>
+                <style>
+                    body {
+                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        padding: 30px 40px;
+                        background: #fff;
+                        color: #1a3a5c;
+                    }
+                    .table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 0.85rem;
+                    }
+                    .table th, .table td {
+                        padding: 8px 10px;
+                        border: 1px solid #dce2ea;
+                        text-align: left;
+                    }
+                    .table th {
+                        background: #f1f6fc;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        font-size: 0.7rem;
+                        letter-spacing: 0.5px;
+                    }
+                    .table-striped tbody tr:nth-of-type(odd) {
+                        background: #fafcff;
+                    }
+                    .table tfoot td {
+                        background: #f1f6fc;
+                        font-weight: 700;
+                    }
+                    .text-end { text-align: right; }
+                    .badge {
+                        display: inline-block;
+                        padding: 2px 10px;
+                        border-radius: 12px;
+                        font-size: 0.7rem;
+                        font-weight: 600;
+                    }
+                    .badge-secondary { background: #edf1f5; color: #4a5a6e; }
+                    .badge-teal { background: #d4f5f0; color: #007a6b; }
+                    .badge-primary { background: #1a3a5c; color: #fff; }
+                    .cammed-header {
+                        text-align: center;
+                        font-family: 'Montserrat', system-ui, sans-serif;
+                        font-weight: 900;
+                        font-size: 2rem;
+                        letter-spacing: -0.5px;
+                        margin-bottom: 2px;
+                    }
+                    .cammed-header .cm { color: #1a3a5c; }
+                    .cammed-header .red-a { color: #c0392b; }
+                    .cammed-header .lab { color: #1a3a5c; font-weight: 700; }
+                    .cammed-sub {
+                        text-align: center;
+                        font-size: 0.7rem;
+                        color: #8a9aa8;
+                        letter-spacing: 1.5px;
+                        margin-top: -2px;
+                        margin-bottom: 16px;
+                        text-transform: uppercase;
+                    }
+                    .member-header {
+                        text-align: center;
+                        font-weight: 700;
+                        font-size: 1.1rem;
+                        margin: 10px 0 14px;
+                        background: #e8f0fe;
+                        padding: 8px 16px;
+                        border-radius: 8px;
+                        display: inline-block;
+                        width: auto;
+                        margin-left: auto;
+                        margin-right: auto;
+                    }
+                    .print-time {
+                        text-align: right;
+                        font-size: 0.7rem;
+                        color: #8a9aa8;
+                        margin-bottom: 10px;
+                    }
+                    .signature-footer {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 30px;
+                        border-top: 2px solid #dce2ea;
+                        padding-top: 18px;
+                        font-size: 0.85rem;
+                        flex-wrap: wrap;
+                        gap: 12px;
+                    }
+                    .signature-footer span {
+                        display: inline-block;
+                        min-width: 120px;
+                        border-bottom: 2px solid #1a3a5c;
+                        padding-bottom: 2px;
+                        margin-left: 6px;
+                        color: #4a5a6e;
+                        font-weight: 400;
+                    }
+                    .fee-total-row td {
+                        background: #f1f6fc !important;
+                        font-weight: 700;
+                    }
+                    .table-responsive {
+                        overflow-x: auto;
+                        margin-top: 6px;
+                    }
+                    @media print {
+                        body { padding: 10px; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${printContent}
+                <script>
+                    window.onload = function() {
+                        window.print();
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+        win.document.close();
+    }
+
+    function openFeeModal() {
+        document.getElementById('feeModalOverlay').classList.add('active');
+        const mainFrom = '{{ from_date or "" }}';
+        const mainTo = '{{ to_date or "" }}';
+        if (mainFrom) document.getElementById('modalFromDate').value = mainFrom;
+        if (mainTo) document.getElementById('modalToDate').value = mainTo;
+        switchFeeTab('moto');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFeeModal() {
+        document.getElementById('feeModalOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeFeeModalOutside(event) {
+        if (event.target === event.currentTarget) closeFeeModal();
+    }
+
+    // ── Filters ──
+    function applyDateRange() {
+        const from = document.getElementById('from_date').value;
+        const to = document.getElementById('to_date').value;
+        if (from && to) {
+            if (from > to) { alert('From date must be before To date.'); return; }
+            applyFilters();
+        } else {
+            alert('Please select both From and To dates.');
+        }
+    }
+
+    function resetDateRange() {
+        document.getElementById('from_date').value = '';
+        document.getElementById('to_date').value = '';
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const from = document.getElementById('from_date').value;
+        const to = document.getElementById('to_date').value;
+        const collector = document.getElementById('collector_filter')?.value || '';
+        const facility = document.getElementById('facility_filter')?.value || '';
+        const sampleType = document.getElementById('sample_type_filter')?.value || '';
+        let url = '/report?';
+        if (from && to) {
+            url += `from_date=${from}&to_date=${to}`;
+        } else {
+            url += `type=monthly&value={{ today.strftime('%Y-%m') }}`;
+        }
+        if (collector) url += `&collector=${collector}`;
+        if (facility) url += `&facility=${facility}`;
+        if (sampleType) url += `&sample_type=${sampleType}`;
+        window.location = url;
+    }
+
+    // ── Toggle details table ──
+    function toggleDetails() {
+        const table = document.getElementById('detailsTable');
+        const btn = document.querySelector('.toggle-details-btn');
+        if (table.style.display === 'none') {
+            table.style.display = 'block';
+            btn.innerHTML = '🙈 Hide';
+        } else {
+            table.style.display = 'none';
+            btn.innerHTML = '👁️ Toggle';
+        }
+    }
+
+    // ── Initial load ──
+    document.addEventListener('DOMContentLoaded', function() {
+        const fromInput = document.getElementById('from_date');
+        const toInput = document.getElementById('to_date');
+        {% if from_date %} fromInput.value = '{{ from_date }}'; {% endif %}
+        {% if to_date %} toInput.value = '{{ to_date }}'; {% endif %}
+        const collectorSelect = document.getElementById('collector_filter');
+        if (collectorSelect) {
+            {% if filter_collector %} collectorSelect.value = '{{ filter_collector }}'; {% endif %}
+        }
+        const facilitySelect = document.getElementById('facility_filter');
+        if (facilitySelect) {
+            {% if filter_facility %} facilitySelect.value = '{{ filter_facility }}'; {% endif %}
+        }
+        const sampleSelect = document.getElementById('sample_type_filter');
+        if (sampleSelect) {
+            {% if filter_sample_type %} sampleSelect.value = '{{ filter_sample_type }}'; {% endif %}
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('feeModalOverlay');
+                if (overlay.classList.contains('active')) {
+                    closeFeeModal();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

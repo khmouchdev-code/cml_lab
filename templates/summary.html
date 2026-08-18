@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% block title %}Summary Report - CMS{% endblock %}
+
+{% block content %}
+<style>
+    .report-header {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 22px 28px;
+        box-shadow: var(--cml-card-shadow);
+        margin-bottom: 26px;
+        border-left: 5px solid var(--cml-blue);
+    }
+    .report-header h4 {
+        font-weight: 800;
+        color: var(--cml-blue);
+        margin-bottom: 4px;
+    }
+    .report-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+    .report-stat-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #edf2f7;
+        text-align: center;
+    }
+    .report-stat-card .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--cml-blue);
+        line-height: 1.2;
+    }
+    .report-stat-card .stat-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #8a94a3;
+        font-weight: 700;
+        margin-top: 4px;
+    }
+    .chart-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .chart-box {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: var(--cml-card-shadow);
+        border: 1px solid #edf2f7;
+    }
+    .chart-box h6 {
+        font-weight: 700;
+        color: var(--cml-blue);
+        margin-bottom: 16px;
+    }
+    .chart-box canvas {
+        max-height: 250px;
+        width: 100% !important;
+    }
+    .report-table-container {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: var(--cml-card-shadow);
+        border: 1px solid #edf2f7;
+        overflow-x: auto;
+    }
+    .report-table-container .table th {
+        background: #f8fafc;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+        align-items: center;
+    }
+    .filter-bar input, .filter-bar select {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+    .filter-bar input:focus, .filter-bar select:focus {
+        border-color: var(--cml-blue);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(43,93,141,0.15);
+    }
+    .filter-bar .btn {
+        background: var(--cml-blue);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 18px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+    .filter-bar .btn:hover {
+        background: var(--cml-dark-blue);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: #8a94a3;
+    }
+    @media (max-width: 768px) {
+        .chart-grid {
+            grid-template-columns: 1fr;
+        }
+        .report-stats {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- Report Header -->
+    <div class="report-header">
+        <h4>📊 Summary Report</h4>
+        <p class="text-muted mb-0">Comprehensive overview of your collection activities.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="report-stats">
+        <div class="report-stat-card">
+            <div class="stat-number">{{ total_records }}</div>
+            <div class="stat-label">Total Records</div>
+        </div>
+        <div class="report-stat-card">
+            <div class="stat-number">{{ total_specimens }}</div>
+            <div class="stat-label">Total Specimens</div>
+        </div>
+        <div class="report-stat-card">
+            <div class="stat-number">{{ total_patients }}</div>
+            <div class="stat-label">Total Patients</div>
+        </div>
+        <div class="report-stat-card">
+            <div class="stat-number">{{ "%.0f"|format(total_fees) }}</div>
+            <div class="stat-label">Total Fees (Moto+Far)</div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="chart-grid">
+        <div class="chart-box">
+            <h6>📈 Daily Trend (last 30 days)</h6>
+            <canvas id="dailyChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h6>🏥 Top Locations</h6>
+            <canvas id="locationChart"></canvas>
+        </div>
+        <!-- <div class="chart-box">
+            <h6>👨‍⚕️ Top Doctors</h6>
+            <canvas id="doctorChart"></canvas>
+        </div> -->
+    </div>
+
+    <!-- Records Table with Filter -->
+    <div class="report-table-container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h6 class="mb-0" style="font-weight:700; color:var(--cml-blue);">📋 All Records</h6>
+            <div class="filter-bar">
+                <input type="date" id="filterDateFrom" placeholder="From">
+                <input type="date" id="filterDateTo" placeholder="To">
+                <input type="text" id="filterLocation" placeholder="Location">
+                <input type="text" id="filterDoctor" placeholder="Doctor">
+                <button class="btn" id="applyFilters">Apply</button>
+                <button class="btn" id="clearFilters" style="background: #e2e8f0; color: #4a5568;">Clear</button>
+                <a href="{{ url_for('export_csv') }}" class="btn" style="background: #28a745; color: white;">Export CSV</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="reportTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Doctor</th>
+                        <th>Call Time</th>
+                        <th>Receive</th>
+                        <th>Specimens</th>
+                        <th>Patients</th>
+                        <th>Moto Fee</th>
+                        <th>Far Fee</th>
+                        <th>Total Fee</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if all_records %}
+                        {% for r in all_records %}
+                        <tr>
+                            <td>{{ r.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ r.location or '-' }}</td>
+                            <td>{{ r.doctor or '-' }}</td>
+                            <td>{{ r.call_time or '-' }}</td>
+                            <td>{{ r.receive_time or '-' }}</td>
+                            <td>{{ r.total_sampling }}</td>
+                            <td>{{ r.patient_count or 0 }}</td>
+                            <td>{{ r.moto_fee or 0 }}</td>
+                            <td>{{ r.far_away_fee or 0 }}</td>
+                            <td><strong>{{ (r.moto_fee or 0) + (r.far_away_fee or 0) }}</strong></td>
+                            <td>{{ r.notes[:30] + '...' if r.notes and r.notes|length > 30 else r.notes or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="11" class="text-center text-muted">No records found.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Pass chart data from Flask
+    const chartDates = {{ chart_dates|safe }};
+    const chartSpecimens = {{ chart_specimens|safe }};
+    const chartPatients = {{ chart_patients|safe }};
+    const chartFees = {{ chart_fees|safe }};
+    const locations = {{ locations|safe }};
+    const locCounts = {{ loc_counts|safe }};
+
+    // Daily trend chart
+    const ctxDaily = document.getElementById('dailyChart').getContext('2d');
+    new Chart(ctxDaily, {
+        type: 'bar',
+        data: {
+            labels: chartDates,
+            datasets: [
+                {
+                    label: 'Specimens',
+                    data: chartSpecimens,
+                    backgroundColor: 'rgba(43, 93, 141, 0.6)',
+                    borderColor: '#2b5d8d',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Patients',
+                    data: chartPatients,
+                    backgroundColor: 'rgba(230, 126, 34, 0.6)',
+                    borderColor: '#e67e22',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Location pie chart
+    const ctxLoc = document.getElementById('locationChart').getContext('2d');
+    new Chart(ctxLoc, {
+        type: 'doughnut',
+        data: {
+            labels: locations,
+            datasets: [{
+                data: locCounts,
+                backgroundColor: ['#2b5d8d', '#e67e22', '#27ae60', '#8e44ad', '#16a085'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Filtering functionality
+    document.getElementById('applyFilters').addEventListener('click', function() {
+        const from = document.getElementById('filterDateFrom').value;
+        const to = document.getElementById('filterDateTo').value;
+        const loc = document.getElementById('filterLocation').value.toLowerCase();
+        const doc = document.getElementById('filterDoctor').value.toLowerCase();
+        const rows = document.querySelectorAll('#reportTable tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length === 0) return;
+            const date = cells[0].textContent;
+            const location = cells[1].textContent.toLowerCase();
+            const doctor = cells[2].textContent.toLowerCase();
+            let show = true;
+            if (from && date < from) show = false;
+            if (to && date > to) show = false;
+            if (loc && !location.includes(loc)) show = false;
+            if (doc && !doctor.includes(doc)) show = false;
+            row.style.display = show ? '' : 'none';
+        });
+    });
+
+    document.getElementById('clearFilters').addEventListener('click', function() {
+        document.getElementById('filterDateFrom').value = '';
+        document.getElementById('filterDateTo').value = '';
+        document.getElementById('filterLocation').value = '';
+        document.getElementById('filterDoctor').value = '';
+        document.querySelectorAll('#reportTable tbody tr').forEach(row => row.style.display = '');
+    });
+</script>
+{% endblock %}

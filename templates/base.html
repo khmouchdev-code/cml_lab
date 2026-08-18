@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Collector · Cammel Lab{% endblock %}</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Montserrat:wght@700;800;900&family=Battambang:wght@700&display=swap" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- ====== ULTIMATE UNDERLINE REMOVAL ====== -->
+    <style>
+        /* Nuke EVERY underline on these elements */
+        #notificationDropdown,
+        #notificationDropdown:link,
+        #notificationDropdown:visited,
+        #notificationDropdown:hover,
+        #notificationDropdown:focus,
+        #notificationDropdown:active,
+        #notificationDropdown i,
+        #notificationDropdown i:hover,
+        #userDropdown,
+        #userDropdown:link,
+        #userDropdown:visited,
+        #userDropdown:hover,
+        #userDropdown:focus,
+        #userDropdown:active,
+        #userDropdown img,
+        #userDropdown img:hover,
+        #userDropdown span,
+        #userDropdown span:hover {
+            text-decoration: none !important;
+            text-decoration-line: none !important;
+            text-decoration-thickness: 0 !important;
+            text-underline-offset: 0 !important;
+            text-decoration-skip-ink: none !important;
+            border-bottom: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Also remove any pseudo-element underlines */
+        #notificationDropdown::after,
+        #notificationDropdown::before,
+        #userDropdown::after,
+        #userDropdown::before {
+            display: none !important;
+            content: none !important;
+        }
+
+        /* Remove dropdown caret underline (sometimes appears) */
+        .dropdown-toggle::after {
+            text-decoration: none !important;
+        }
+
+        /* Force spacing */
+        .navbar-nav .nav-item .nav-link {
+            padding-left: 0.6rem !important;
+            padding-right: 0.6rem !important;
+        }
+    </style>
+
+    <style>
+        /* ===== DESIGN SYSTEM ===== */
+        :root {
+            --primary: #1e3a6f;
+            --primary-light: #2d5a9a;
+            --primary-dark: #0f2547;
+            --accent: #e53e3e;
+            --bg: #f0f4f8;
+            --surface: rgba(255,255,255,0.7);
+            --surface-solid: #ffffff;
+            --surface-hover: #eaf0f6;
+            --text-primary: #0b1a33;
+            --text-secondary: #2d4058;
+            --text-muted: #6b7f96;
+            --border: #d6e0eb;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 32px -8px rgba(0,0,0,0.08);
+            --shadow-lg: 0 24px 64px -16px rgba(0,0,0,0.16);
+            --radius: 16px;
+            --radius-xl: 28px;
+            --transition: 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+            --glass-bg: rgba(255,255,255,0.5);
+            --glass-border: rgba(255,255,255,0.3);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ===== GLASS NAVBAR ===== */
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(1.4);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 6px 0;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+
+        .navbar-brand, .nav-link {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+            text-decoration: none !important;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            transition: var(--transition);
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: var(--transition);
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after { width: 60%; }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.6);
+            color: var(--primary) !important;
+        }
+
+        .nav-link.text-warning { color: #b45309 !important; }
+        .nav-link.text-warning:hover { background: #fef3c7; }
+
+        /* ===== LOGO — HARDCODED COLORS (NEVER CHANGE) ===== */
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .logo-letters {
+            display: flex;
+            align-items: flex-end;
+            line-height: 1;
+        }
+
+        .logo-cm {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 34px;
+            font-weight: 900;
+            color: #1e3a6f;   /* HARDCODED DEEP BLUE — NEVER CHANGES */
+            letter-spacing: -3px;
+        }
+
+        .logo-l {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 34px;
+            font-weight: 900;
+            color: #e53e3e;   /* HARDCODED RED — NEVER CHANGES */
+            margin-left: -4px;
+        }
+
+        .logo-divider {
+            width: 2px;
+            height: 34px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .logo-text-side {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .logo-khmer {
+            font-family: 'Battambang', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .logo-khmer span { color: #e53e3e; }
+
+        .logo-english {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 17px;
+            font-weight: 900;
+            color: #1e3a6f;
+            letter-spacing: -0.3px;
+        }
+
+        .logo-english .red { color: #e53e3e; }
+
+        .logo-subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 7px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+        }
+
+        /* ===== LIVE CLOCK ===== */
+        .live-clock {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 18px;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            border: 1px solid var(--glass-border);
+            margin-right: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .live-clock .time { font-weight: 700; letter-spacing: 0.3px; color: var(--text-primary); }
+        .live-clock .date { font-size: 11px; opacity: 0.7; }
+
+        /* ===== PROFILE DROPDOWN ===== */
+        .nav-profile-img {
+            width: 36px;
+            height: 36px;
+            object-fit: cover;
+            border: 2px solid var(--surface-solid);
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dropdown-menu {
+            border: none;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            padding: 8px 0;
+            min-width: 210px;
+            backdrop-filter: blur(12px);
+            background: rgba(255,255,255,0.85);
+        }
+
+        .dropdown-item {
+            padding: 10px 20px;
+            font-weight: 500;
+            font-size: 14px;
+            border-radius: 8px;
+            margin: 0 6px;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: var(--surface-hover);
+            color: var(--primary);
+        }
+
+        /* ===== NOTIFICATION BELL — STANDARD POSITION ===== */
+        @keyframes ring {
+            0% { transform: rotate(0deg); }
+            15% { transform: rotate(14deg); }
+            30% { transform: rotate(-12deg); }
+            45% { transform: rotate(10deg); }
+            60% { transform: rotate(-8deg); }
+            75% { transform: rotate(6deg); }
+            90% { transform: rotate(-4deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.6; }
+        }
+
+        /* Online status dot for profile */
+        .online-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2ecc71;
+            border: 2px solid var(--surface-solid);
+            display: inline-block;
+            margin-left: 4px;
+            animation: pulse-dot 2s ease-in-out infinite;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+
+        .online-status-dot.offline {
+            background: #e74c3c;
+            animation: none;
+        }
+
+        .bell-icon {
+            font-size: 22px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .bell-icon:hover {
+            color: var(--primary);
+            transform: scale(1.08) rotate(-6deg);
+        }
+
+        .bell-icon.has-notification {
+            animation: ring 0.9s ease-in-out;
+            color: var(--primary);
+        }
+
+        .notification-dropdown {
+            min-width: 440px;
+            max-width: 500px;
+            padding: 0;
+            border: none;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            background: var(--surface-solid);
+            backdrop-filter: blur(4px);
+        }
+
+        .notification-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 22px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h6 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.2px;
+        }
+
+        .notification-header .badge-count {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            padding: 5px 18px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .notification-header .badge-count.has-new {
+            background: var(--accent);
+            animation: pulse-dot 2s infinite;
+        }
+
+        .notification-body {
+            max-height: 380px;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+
+        .notification-body::-webkit-scrollbar { width: 5px; }
+        .notification-body::-webkit-scrollbar-track { background: #f1f5f9; }
+        .notification-body::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 12px; }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            padding: 18px 26px;
+            transition: background 0.15s;
+            cursor: default;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .notification-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 4px;
+            background: transparent;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .notification-item:hover::before { background: var(--primary); }
+        .notification-item:hover { background: #f8faff; }
+
+        .notification-item .icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .notification-item .icon-wrapper.warning { background: #fef3c7; color: #b45309; }
+        .notification-item .icon-wrapper.success { background: #d1fae5; color: #065f46; }
+        .notification-item .icon-wrapper.info { background: #dbeafe; color: #1e40af; }
+        .notification-item .icon-wrapper.danger { background: #fee2e2; color: #b91c1c; }
+
+        .notification-item .content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-item .content .title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .notification-item .content .description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .notification-item .content .time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-item .content .time .status-chip {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            background: #e2e8f0;
+            color: var(--text-muted);
+        }
+
+        .notification-item .content .time .status-chip.pending { background: #fef3c7; color: #92400e; }
+        .notification-item .content .time .status-chip.resolved { background: #d1fae5; color: #065f46; }
+
+        .notification-item .action-btn {
+            flex-shrink: 0;
+            padding: 8px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 40px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            transition: var(--transition);
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(30,58,111,0.15);
+        }
+
+        .notification-item .action-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(30,58,111,0.25);
+        }
+
+        .notification-empty {
+            padding: 60px 28px;
+            text-align: center;
+        }
+
+        .notification-empty .empty-icon {
+            font-size: 60px;
+            color: var(--border);
+            margin-bottom: 16px;
+        }
+
+        .notification-empty h6 {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .notification-empty p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .notification-footer {
+            padding: 18px 28px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .notification-footer a {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .notification-footer a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* ===== LOADING OVERLAY ===== */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(240, 244, 248, 0.7);
+            backdrop-filter: blur(12px) saturate(1.2);
+            z-index: 99999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #loadingOverlay.show { display: flex; }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s cubic-bezier(0.45, 0.05, 0.2, 0.99) infinite;
+            box-shadow: 0 0 40px rgba(30,58,111,0.08);
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== FLASH MESSAGES ===== */
+        .flash-wrapper {
+            max-width: 720px;
+            margin: 24px auto 0;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .flash-message {
+            padding: 18px 26px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            border: 1px solid transparent;
+            backdrop-filter: blur(4px);
+        }
+
+        .flash-message .close-flash {
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            opacity: 0.4;
+            color: inherit;
+            padding: 0 0 0 16px;
+            line-height: 1;
+            transition: var(--transition);
+        }
+
+        .flash-message .close-flash:hover { opacity: 1; transform: scale(1.15); }
+
+        .flash-success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .flash-danger { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+        .flash-warning { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+        .flash-info { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+
+        @keyframes slideDown {
+            0% { opacity: 0; transform: translateY(-28px) scale(0.94); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-28px); }
+        }
+
+        .page-content { animation: fadeUp 0.5s ease; }
+
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            margin-top: auto;
+            background: var(--surface-solid);
+            border-top: 1px solid var(--border);
+            padding: 24px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 450;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 576px) {
+            .notification-dropdown {
+                min-width: 300px;
+                max-width: 340px;
+                position: fixed;
+                top: 70px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+
+            .notification-item { padding: 16px 20px; }
+            .notification-item .content .title { font-size: 14px; }
+            .notification-item .content .description { font-size: 12px; }
+            .live-clock .date { display: none; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div id="loadingOverlay">
+    <div class="loader"></div>
+    <div class="loader-text"><i class="fas fa-circle-notch fa-spin me-2"></i>Loading…</div>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="brand-logo" href="{{ url_for('dashboard') }}">
+            <div class="logo-letters">
+                <span class="logo-cm">CM</span><span class="logo-l">L</span>
+            </div>
+            <div class="logo-divider"></div>
+            <div class="logo-text-side">
+                <div class="logo-khmer">មន្ទីរពិសោធន៍ <span>ខេមមេដ</span></div>
+                <div class="logo-english">C<span class="red">A</span>MMED LAB</div>
+                <div class="logo-subtitle">Leading Diagnostics</div>
+            </div>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            {% if session.get('user_id') %}
+            <ul class="navbar-nav me-auto" style="margin-left: 24px;">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-th-large me-1"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('add_record') }}"><i class="fas fa-plus-circle me-1"></i>Add Record</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('report') }}"><i class="fas fa-chart-bar me-1"></i>Reports</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('members_list') }}"><i class="fas fa-users me-1"></i>Members</a></li>
+                {% if session.get('is_admin') %}
+                <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('admin_panel') }}"><i class="fas fa-shield-alt me-1"></i>Admin</a></li>
+                {% endif %}
+            </ul>
+
+            <!-- Live Clock -->
+            <div class="live-clock">
+                <i class="far fa-clock me-1"></i>
+                <span class="time" id="liveTime">--:--:--</span>
+                <span class="date" id="liveDate">---</span>
+            </div>
+
+            <!-- ===== NOTIFICATION BELL + PROFILE with better spacing ===== -->
+            <ul class="navbar-nav align-items-center" style="gap: 0px;">
+                <li class="nav-item dropdown" style="list-style: none;">
+                    <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 6px 10px;">
+                        <i class="fas fa-bell bell-icon {% if session.is_admin and pending_resets is defined and pending_resets > 0 %}has-notification{% endif %}"></i>
+                        {% if session.is_admin and pending_resets is defined and pending_resets > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px; padding: 4px 10px; border: 2px solid var(--surface-solid); animation: pulse-dot 2s infinite;">
+                            {{ pending_resets }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown">
+                        <div class="notification-header">
+                            <h6><i class="fas fa-bell me-2"></i>Notifications</h6>
+                            {% if session.is_admin and pending_resets is defined and pending_resets > 0 %}
+                            <span class="badge-count has-new">{{ pending_resets }} new</span>
+                            {% else %}
+                            <span class="badge-count">All caught up</span>
+                            {% endif %}
+                        </div>
+                        <div class="notification-body">
+                            {% if session.is_admin and pending_resets is defined and pending_resets > 0 %}
+                            <div class="notification-item">
+                                <div class="icon-wrapper warning"><i class="fas fa-key"></i></div>
+                                <div class="content">
+                                    <div class="title">Password Reset Request</div>
+                                    <div class="description">{{ pending_resets }} member{{ 's' if pending_resets > 1 else '' }} requested a password reset</div>
+                                    <div class="time">
+                                        <span>Needs your attention</span>
+                                        <span class="status-chip pending">Pending</span>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('admin_reset_requests') }}" class="action-btn">Review</a>
+                            </div>
+                            <div class="notification-item">
+                                <div class="icon-wrapper info"><i class="fas fa-info-circle"></i></div>
+                                <div class="content">
+                                    <div class="title">System Status</div>
+                                    <div class="description">All services are operating within normal parameters</div>
+                                    <div class="time">
+                                        <span>Just now</span>
+                                        <span class="status-chip resolved">Healthy</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="notification-empty">
+                                <div class="empty-icon"><i class="fas fa-check-circle"></i></div>
+                                <h6>All caught up!</h6>
+                                <p>No new notifications at the moment</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="notification-footer">
+                            {% if session.is_admin and pending_resets is defined and pending_resets > 0 %}
+                            <a href="{{ url_for('admin_reset_requests') }}"><i class="fas fa-arrow-right me-1"></i> View all requests</a>
+                            {% else %}
+                            <span style="color: var(--text-muted); font-size: 13px;"><i class="fas fa-check-circle text-success me-1"></i> Up to date</span>
+                            {% endif %}
+                        </div>
+                    </ul>
+                </li>
+
+                <!-- ===== UPDATED: Profile with online status dot & cache-busting ===== -->
+                <li class="nav-item dropdown" style="margin-left: 0px;">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" style="padding: 6px 10px;">
+                        {% set profile_pic = session.get('profile_picture', 'default.png') %}
+                        {% set profile_version = session.get('profile_version', 1) %}
+                        {% if profile_pic and profile_pic.startswith('http') %}
+                            <img src="{{ profile_pic }}" alt="Profile" class="nav-profile-img" loading="lazy">
+                        {% elif profile_pic and profile_pic != 'default.png' %}
+                            <img src="{{ url_for('uploaded_file', filename=profile_pic) }}?v={{ profile_version }}" alt="Profile" class="nav-profile-img" loading="lazy">
+                        {% else %}
+                            <img src="{{ url_for('uploaded_file', filename='default.png') }}" alt="Profile" class="nav-profile-img" loading="lazy">
+                        {% endif %}
+                        <span>{{ session.get('full_name', 'User') }}</span>
+                        <span class="online-status-dot" id="onlineStatusDot" title="Online"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user-cog me-2"></i>Profile Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+            {% else %}
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a></li>
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- ===== FLASH MESSAGES ===== -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-wrapper">
+    {% for category, message in messages %}
+    <div class="flash-message flash-{{ category }}" id="flash-{{ loop.index }}">
+        <span>{% if category == 'success' %}✅ {% elif category == 'danger' or category == 'error' %}❌ {% elif category == 'warning' %}⚠️ {% elif category == 'info' %}ℹ️ {% endif %}{{ message }}</span>
+        <button class="close-flash" onclick="dismissFlash(this.parentElement)">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="mb-5 page-content" style="position: relative; z-index: 1;">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+    <div class="container">
+        <span class="fw-semibold" style="color: var(--text-primary);">Collector Management System</span> &copy; 2026 — All Rights Reserved.
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ===== LIVE CAMBODIA CLOCK (UTC+7) =====
+    function updateClock() {
+        const now = new Date();
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        const cambodia = new Date(utc + 7 * 3600000);
+        document.getElementById('liveTime').textContent =
+            String(cambodia.getHours()).padStart(2,'0') + ':' +
+            String(cambodia.getMinutes()).padStart(2,'0') + ':' +
+            String(cambodia.getSeconds()).padStart(2,'0');
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        document.getElementById('liveDate').textContent =
+            days[cambodia.getDay()] + ' ' +
+            String(cambodia.getDate()).padStart(2,'0') + ' ' +
+            months[cambodia.getMonth()] + ' ' +
+            cambodia.getFullYear();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ===== LOADING OVERLAY =====
+    const loading = document.getElementById('loadingOverlay');
+    function showLoading() { loading.classList.add('show'); }
+    function hideLoading() { loading.classList.remove('show'); }
+    function dismissFlash(el) {
+        el.style.animation = 'slideUp 0.35s ease forwards';
+        setTimeout(() => { if (el.parentElement) el.remove(); }, 350);
+    }
+
+    // ===== AUTO LOADING ON NAVIGATION =====
+    document.addEventListener('DOMContentLoaded', function() {
+        hideLoading();
+        document.querySelectorAll('.nav-link:not(.dropdown-toggle), .navbar-brand, .brand-logo, .dropdown-item').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                if (this.classList.contains('dropdown-toggle') || this.id === 'notificationDropdown') return;
+                showLoading();
+            });
+        });
+        document.querySelectorAll('form').forEach(f => f.addEventListener('submit', showLoading));
+        document.querySelectorAll('.flash-message').forEach(msg => {
+            setTimeout(() => { if (msg.parentElement) dismissFlash(msg); }, 6000);
+        });
+    });
+    window.addEventListener('pageshow', hideLoading);
+    setTimeout(hideLoading, 5000);
+
+    // ============================================================
+    // ===== REAL-TIME ONLINE/OFFLINE STATUS =====
+    // ============================================================
+    {% if session.get('user_id') %}
+
+    // Get the online status dot element
+    const statusDot = document.getElementById('onlineStatusDot');
+
+    // Function to mark user as offline
+    function markOffline() {
+        if (statusDot) {
+            statusDot.classList.add('offline');
+            statusDot.title = 'Offline';
+        }
+        // Use sendBeacon for reliable offline detection
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon('/set_offline');
+        } else {
+            fetch('/set_offline', {
+                method: 'GET',
+                keepalive: true
+            }).catch(function() {});
+        }
+    }
+
+    // Function to mark user as online
+    function markOnline() {
+        if (statusDot) {
+            statusDot.classList.remove('offline');
+            statusDot.title = 'Online';
+        }
+        fetch('/api/ping', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).catch(function() {});
+    }
+
+    // Ping server every 30 seconds to keep session alive
+    let pingInterval = setInterval(function() {
+        fetch('/api/ping', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).catch(function() {
+            // If ping fails, mark user as offline
+            if (statusDot) {
+                statusDot.classList.add('offline');
+                statusDot.title = 'Offline';
+            }
+        });
+    }, 30000);
+
+    // Handle page unload (closing tab, refreshing, navigating away)
+    window.addEventListener('beforeunload', function() {
+        markOffline();
+    });
+
+    // Handle page hide (mobile browsers)
+    window.addEventListener('pagehide', function() {
+        markOffline();
+    });
+
+    // Handle visibility change (tab switching)
+    let visibilityTimeout = null;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // User switched tabs - mark offline after 5 seconds
+            if (visibilityTimeout) clearTimeout(visibilityTimeout);
+            visibilityTimeout = setTimeout(function() {
+                if (document.hidden) {
+                    markOffline();
+                }
+            }, 5000);
+        } else {
+            // User came back - ping server to go online
+            if (visibilityTimeout) {
+                clearTimeout(visibilityTimeout);
+                visibilityTimeout = null;
+            }
+            markOnline();
+        }
+    });
+
+    // Handle browser back/forward
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            // Page came from bfcache - ping server to go online
+            markOnline();
+        }
+    });
+
+    // Handle online/offline events (network connection)
+    window.addEventListener('online', function() {
+        markOnline();
+    });
+
+    window.addEventListener('offline', function() {
+        if (statusDot) {
+            statusDot.classList.add('offline');
+            statusDot.title = 'Offline';
+        }
+    });
+
+    // Handle user activity (click, keypress, scroll) - keep online
+    let activityTimeout = null;
+    function resetActivityTimer() {
+        if (activityTimeout) {
+            clearTimeout(activityTimeout);
+            activityTimeout = null;
+        }
+        // If user is active, make sure they're marked online
+        if (statusDot && statusDot.classList.contains('offline')) {
+            markOnline();
+        }
+    }
+
+    document.addEventListener('click', resetActivityTimer);
+    document.addEventListener('keydown', resetActivityTimer);
+    document.addEventListener('scroll', resetActivityTimer);
+    document.addEventListener('mousemove', resetActivityTimer);
+
+    console.log('✅ Real-time status tracking initialized');
+
+    {% endif %}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

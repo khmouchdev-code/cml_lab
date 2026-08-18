@@ -1,0 +1,1351 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - CMS{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --cml-blue: #2b5d8d;
+        --cml-dark-blue: #1f456c;
+        --cml-red: #d9534f;
+        --cml-purple: #6f42c1;
+        --cml-orange: #e67e22;
+        --cml-teal: #16a085;
+        --cml-card-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        --cml-card-shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.12);
+    }
+
+    body {
+        background: #f6f8fb;
+    }
+
+    .welcome-banner {
+        background: #ffffff;
+        border-left: 5px solid var(--cml-blue);
+        border-radius: 12px;
+        padding: 22px 28px;
+        box-shadow: var(--cml-card-shadow);
+        margin-bottom: 26px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .welcome-banner h3 {
+        font-weight: 800;
+        color: var(--cml-blue);
+        letter-spacing: -0.3px;
+        margin-bottom: 4px;
+    }
+    .welcome-banner .text-muted {
+        font-size: 0.95rem;
+    }
+    .welcome-banner .btn-primary {
+        box-shadow: 0 4px 14px rgba(43, 93, 141, 0.3);
+        transition: transform 0.2s, box-shadow 0.2s;
+        padding: 0.65rem 1.4rem;
+    }
+    .welcome-banner .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(43, 93, 141, 0.4);
+    }
+
+    .stat-card {
+        border-radius: 14px;
+        padding: 22px;
+        color: #fff;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card::after {
+        content: "";
+        position: absolute;
+        top: -30%;
+        right: -20%;
+        width: 130px;
+        height: 130px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+    }
+    .stat-card .value {
+        font-size: 30px;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-top: 6px;
+        letter-spacing: -0.5px;
+    }
+    .stat-card .icon-wrapper {
+        background: rgba(255, 255, 255, 0.22);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .stat-card svg {
+        width: 24px;
+        height: 24px;
+        fill: #ffffff;
+    }
+    .stat-card .stat-label {
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 700;
+        font-size: 0.72rem;
+        opacity: 0.92;
+        position: relative;
+        z-index: 1;
+    }
+    .stat-card .stat-sub {
+        font-size: 0.72rem;
+        opacity: 0.85;
+        margin-top: 5px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .custom-card {
+        background: #ffffff;
+        border: none;
+        border-radius: 14px;
+        box-shadow: var(--cml-card-shadow);
+        margin-bottom: 26px;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+    .custom-card:hover {
+        box-shadow: var(--cml-card-shadow-hover);
+    }
+    .custom-card .card-header {
+        background: #ffffff;
+        border-bottom: 1px solid #edf2f7;
+        padding: 18px 22px;
+        font-weight: 700;
+        color: var(--cml-blue);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.02rem;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .custom-card .card-header .badge-count {
+        background: var(--cml-blue);
+        color: white;
+        border-radius: 40px;
+        padding: 0.25rem 0.95rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .table thead th {
+        background-color: #f8fafc;
+        color: #4a5568;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+        padding-top: 0.9rem;
+        padding-bottom: 0.9rem;
+    }
+    .table tbody td {
+        vertical-align: middle;
+        font-size: 0.88rem;
+    }
+    .table tbody tr {
+        transition: background-color 0.15s;
+    }
+    .table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .duration-badge {
+        background: #e8f4fd;
+        color: #2b5d8d;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .notes-cell {
+        max-width: 220px;
+    }
+    .notes-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 0.82rem;
+        color: #4a5568;
+        line-height: 1.35;
+        cursor: help;
+    }
+    .notes-empty {
+        color: #a0aec0;
+        font-style: italic;
+        font-size: 0.82rem;
+    }
+
+    /* ─── TODAY'S COLLECTION SUMMARY ─── */
+    .today-summary {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        padding: 0;
+        margin-bottom: 26px;
+        border: 1px solid #eef2f7;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+    .today-summary:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .today-summary-header {
+        background: linear-gradient(135deg, #f0f7ff 0%, #f7fafd 100%);
+        padding: 16px 24px;
+        border-bottom: 1px solid #e2edf7;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .today-summary-header .header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .today-summary-header .header-icon {
+        font-size: 1.2rem;
+    }
+    .today-summary-header h6 {
+        color: var(--cml-blue);
+        font-weight: 800;
+        letter-spacing: -0.2px;
+        margin: 0;
+        font-size: 1.05rem;
+    }
+    .today-count-pill {
+        background: var(--cml-blue);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.72rem;
+        padding: 0.25rem 0.9rem;
+        border-radius: 40px;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .today-stats-row {
+        display: flex;
+        gap: 28px;
+        padding: 14px 24px;
+        background: #fafcfe;
+        border-bottom: 1px solid #eef2f7;
+        flex-wrap: wrap;
+    }
+    .today-stat-item {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+    .today-stat-value {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--cml-blue);
+    }
+    .today-stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #8a94a3;
+        font-weight: 700;
+    }
+
+    .today-entries-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+        padding: 20px 24px;
+        background: #ffffff;
+    }
+
+    .entry-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 16px 18px;
+        border: 1px solid #eef2f7;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .entry-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(43, 93, 141, 0.08);
+        border-color: #cbddee;
+    }
+
+    .entry-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .entry-location {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .entry-location .loc-icon {
+        font-size: 0.9rem;
+    }
+    .entry-location .loc-name {
+        font-weight: 700;
+        color: #1f2d3d;
+        font-size: 0.92rem;
+    }
+    .doctor-tag {
+        font-weight: 600;
+        font-size: 0.7rem;
+        background: #f1f5f9;
+        padding: 0.1rem 0.6rem;
+        border-radius: 20px;
+        color: #4a5568;
+        white-space: nowrap;
+    }
+    .duration-tag {
+        background: #e8f4fd;
+        color: #2b5d8d;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .entry-time {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: #4a5568;
+        background: #f8fafc;
+        border-radius: 6px;
+        padding: 4px 12px;
+        width: fit-content;
+    }
+    .entry-time .time-arrow {
+        color: #cbd5e0;
+        font-weight: 300;
+        margin: 0 2px;
+    }
+
+    .entry-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 2px;
+    }
+    .metric-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 0.2em 0.7em;
+        border-radius: 20px;
+        background: #f1f5f9;
+        color: #2d3748;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .metric-badge.specimens {
+        background: #d4edda;
+        color: #155724;
+    }
+    .metric-badge.patients {
+        background: #cce5ff;
+        color: #004085;
+    }
+    .metric-badge.fees {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .entry-note {
+        font-size: 0.76rem;
+        color: #6c757d;
+        border-top: 1px dashed #edf2f7;
+        margin-top: 4px;
+        padding-top: 8px;
+        display: flex;
+        gap: 6px;
+    }
+    .entry-note .note-icon {
+        flex-shrink: 0;
+    }
+    .entry-note .note-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.4;
+    }
+
+    .empty-today {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        color: #8a94a3;
+        font-size: 0.9rem;
+    }
+    .empty-today .empty-icon {
+        font-size: 2.4rem;
+        display: block;
+        margin-bottom: 0.5rem;
+        opacity: 0.5;
+    }
+    .empty-today p {
+        margin: 0;
+    }
+
+    /* ─── LAST 7 DAYS ACTIVITY ─── */
+    .weekly-chart {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 10px;
+        height: 190px;
+        padding: 0 6px;
+    }
+    .weekly-chart .day-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+        position: relative;
+    }
+    .weekly-chart .day-value {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #2d3748;
+        margin-bottom: 6px;
+        opacity: 0;
+        transform: translateY(4px);
+        animation: fadeInValue 0.4s ease forwards;
+    }
+    @keyframes fadeInValue {
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .weekly-chart .bar-track {
+        width: 100%;
+        max-width: 42px;
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+        background: #f5f7fa;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .weekly-chart .bar-fill {
+        width: 100%;
+        border-radius: 8px 8px 0 0;
+        background: linear-gradient(180deg, #4f8bc7, var(--cml-blue));
+        transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        height: 0%;
+        position: relative;
+    }
+    .weekly-chart .day-col.is-today .bar-fill {
+        background: linear-gradient(180deg, #34d399, #059669);
+    }
+    .weekly-chart .day-col.is-empty .bar-fill {
+        background: #e2e8f0;
+        height: 4% !important;
+    }
+    .weekly-chart .day-col:hover .bar-fill {
+        filter: brightness(1.08);
+    }
+    .weekly-chart .day-name {
+        font-weight: 700;
+        color: #2d3748;
+        font-size: 0.78rem;
+        margin-top: 10px;
+    }
+    .weekly-chart .day-date {
+        font-size: 0.68rem;
+        color: #a0aec0;
+        margin-top: 1px;
+    }
+    .weekly-chart .day-entries {
+        font-size: 0.65rem;
+        color: #a0aec0;
+        margin-top: 1px;
+    }
+    .weekly-chart .day-col.is-today .day-name {
+        color: var(--cml-teal);
+    }
+    .weekly-summary-strip {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+        border-top: 1px solid #edf2f7;
+        margin-top: 20px;
+        padding-top: 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .weekly-summary-strip .ws-value {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--cml-blue);
+        line-height: 1.1;
+    }
+    .weekly-summary-strip .ws-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #a0aec0;
+        font-weight: 700;
+        margin-top: 2px;
+    }
+
+    .doctor-label { font-size: 0.75rem; color: #6c757d; }
+
+    /* ─── PERIOD FILTER TABS ─── */
+    .period-tabs {
+        display: flex;
+        gap: 4px;
+        background: #f1f4f9;
+        border-radius: 10px;
+        padding: 4px;
+    }
+    .period-tabs a {
+        padding: 0.4rem 0.9rem;
+        border-radius: 7px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #64748b;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+    }
+    .period-tabs a:hover {
+        color: var(--cml-blue);
+    }
+    .period-tabs a.active {
+        background: #ffffff;
+        color: var(--cml-blue);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ─── DATE RANGE FILTER ─── */
+    .date-range-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 8px 16px;
+        margin: 0 0 12px 0;
+        border: 1px solid #edf2f7;
+    }
+    .date-range-filter label {
+        font-weight: 700;
+        color: #2d3748;
+        font-size: 0.8rem;
+        margin: 0;
+    }
+    .date-range-filter input[type="date"] {
+        border: 1px solid #e2e8f0;
+        border-radius: 7px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        background: #ffffff;
+        min-width: 140px;
+    }
+    .date-range-filter input[type="date"]:focus {
+        border-color: var(--cml-blue);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(43, 93, 141, 0.15);
+    }
+    .date-range-filter .filter-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-left: auto;
+    }
+    .date-range-filter .btn-sm {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.35rem 0.9rem;
+        border-radius: 7px;
+    }
+    .date-range-filter .btn-outline-secondary {
+        color: #64748b;
+        border-color: #d1d5db;
+    }
+    .date-range-filter .btn-outline-secondary:hover {
+        background: #edf2f7;
+    }
+    .date-range-filter .badge-period {
+        background: var(--cml-blue);
+        color: white;
+        padding: 0.25rem 0.7rem;
+        border-radius: 40px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+    @media (max-width: 768px) {
+        .date-range-filter {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .date-range-filter .filter-actions {
+            margin-left: 0;
+            justify-content: center;
+        }
+        .date-range-filter input[type="date"] {
+            width: 100%;
+        }
+    }
+
+    .period-summary-strip {
+        display: flex;
+        gap: 10px;
+        padding: 14px 20px;
+        background: #f8fafc;
+        border-bottom: 1px solid #edf2f7;
+        flex-wrap: wrap;
+    }
+    .period-summary-strip .ps-item {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        background: #ffffff;
+        border: 1px solid #edf2f7;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    .period-summary-strip .ps-item .ps-value {
+        font-weight: 800;
+        color: var(--cml-blue);
+        font-size: 0.95rem;
+    }
+    .period-summary-strip .ps-item .ps-label {
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-size: 0.65rem;
+    }
+
+    @media (max-width: 768px) {
+        .custom-card .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .period-tabs { width: 100%; overflow-x: auto; }
+    }
+
+    /* Action buttons */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: opacity 0.2s, transform 0.2s;
+        border: none;
+    }
+    .action-btn:hover {
+        opacity: 0.85;
+        transform: scale(1.07);
+    }
+    .action-btn svg { width: 16px; height: 16px; fill: #ffffff; }
+    .action-btn.bg-warning svg { fill: #212529; }
+    .action-btn.bg-danger svg { fill: #ffffff; }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 1.5rem;
+    }
+    .empty-state .empty-icon {
+        font-size: 2.6rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.6;
+    }
+
+    /* ─── Responsive Collection Logs Table ─── */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 0 0 14px 14px;
+    }
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    .collection-logs-table {
+        min-width: 1100px;
+        margin-bottom: 0;
+        table-layout: auto;
+    }
+    .collection-logs-table th,
+    .collection-logs-table td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    .collection-logs-table .notes-cell {
+        max-width: 180px;
+        white-space: normal;
+    }
+    .collection-logs-table .notes-text {
+        -webkit-line-clamp: 2;
+    }
+
+    /* Sticky Date (left) + Actions (right) */
+    .collection-logs-table thead th:first-child,
+    .collection-logs-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: #f8fafc;
+        box-shadow: 4px 0 8px -4px rgba(0,0,0,0.08);
+    }
+    .collection-logs-table tbody td:first-child {
+        background: #ffffff;
+    }
+    .collection-logs-table tbody tr:hover td:first-child {
+        background: #f8fafc;
+    }
+    .collection-logs-table thead th:last-child,
+    .collection-logs-table tbody td:last-child {
+        position: sticky;
+        right: 0;
+        z-index: 2;
+        background: #f8fafc;
+        box-shadow: -4px 0 8px -4px rgba(0,0,0,0.08);
+    }
+    .collection-logs-table tbody td:last-child {
+        background: #ffffff;
+    }
+    .collection-logs-table tbody tr:hover td:last-child {
+        background: #f8fafc;
+    }
+
+    /* Progressive column hiding */
+    @media (max-width: 1200px) {
+        .collection-logs-table .col-types { display: none; }
+    }
+    @media (max-width: 992px) {
+        .collection-logs-table .col-moto,
+        .collection-logs-table .col-far { display: none; }
+    }
+    @media (max-width: 768px) {
+        .collection-logs-table {
+            min-width: 780px;
+            font-size: 0.82rem;
+        }
+        .collection-logs-table th,
+        .collection-logs-table td {
+            padding: 0.55rem 0.6rem;
+        }
+        .collection-logs-table .col-call,
+        .collection-logs-table .col-receive,
+        .collection-logs-table .col-duration { display: none; }
+        .collection-logs-table .notes-cell {
+            max-width: 120px;
+        }
+    }
+    @media (max-width: 576px) {
+        .table-view { display: none !important; }
+        .card-view  { display: block !important; }
+    }
+
+    /* Card view (mobile) */
+    .card-view {
+        display: none;
+        padding: 12px 16px 20px;
+    }
+    .log-card {
+        background: #fff;
+        border: 1px solid #eef2f7;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .log-card:last-child { margin-bottom: 0; }
+    .log-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .log-card-date {
+        font-weight: 700;
+        color: #1f2d3d;
+        font-size: 0.95rem;
+    }
+    .log-card-location {
+        font-weight: 600;
+        color: var(--cml-blue);
+        font-size: 0.9rem;
+    }
+    .log-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 12px;
+        font-size: 0.78rem;
+        color: #4a5568;
+        margin-bottom: 8px;
+    }
+    .log-card-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+    .log-card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #edf2f7;
+    }
+
+    @media (max-width: 768px) {
+        .welcome-banner { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .stat-card .value { font-size: 22px; }
+        .notes-cell { max-width: 140px; }
+        .weekly-chart { height: 150px; gap: 6px; }
+        .weekly-chart .bar-track { max-width: 30px; }
+        .weekly-chart .day-entries { display: none; }
+        .today-entries-grid { grid-template-columns: 1fr; padding: 16px; }
+        .today-stats-row { gap: 16px; padding: 12px 16px; }
+        .today-summary-header { padding: 14px 16px; }
+        .entry-card { padding: 14px; }
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- Welcome Header -->
+    <div class="welcome-banner">
+        <div>
+            <h3>👋 Welcome back, {{ member.full_name }}!</h3>
+            <p class="text-muted mb-0">{{ today.strftime('%A, %B %d, %Y') }}</p>
+        </div>
+        <a href="{{ url_for('add_record') }}" class="btn btn-primary" style="background-color: var(--cml-blue); border: none; border-radius: 8px; font-weight: 600;">
+            + Add Today's Sampling
+        </a>
+    </div>
+
+    <!-- Stat Cards Row -->
+    <div class="row">
+        <!-- Today's Specimens -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #2b5d8d, #1f456c);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Today's Specimens</div>
+                        <div class="value">{{ today_sampling }}</div>
+                    </div>
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+                    </div>
+                </div>
+                <div class="stat-sub">{{ today_entries_count }} entries today</div>
+            </div>
+        </div>
+        <!-- Today's Patients -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #e67e22, #d35400);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Today's Samples</div>
+                        <div class="value">{{ today_patients }}</div>
+                    </div>
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                </div>
+                <div class="stat-sub">Unique patients today</div>
+            </div>
+        </div>
+        <!-- Total Patients -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Samples</div>
+                        <div class="value">{{ total_patients }}</div>
+                    </div>
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    </div>
+                </div>
+                <div class="stat-sub">Cumulative patient count</div>
+            </div>
+        </div>
+        <!-- Total Records -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Records</div>
+                        <div class="value">{{ total_records }}</div>
+                    </div>
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    </div>
+                </div>
+                <div class="stat-sub">Total active logging entries</div>
+            </div>
+        </div>
+        <!-- All-Time Specimens -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #6f42c1, #9b59b6);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">All-Time Specimens</div>
+                        <div class="value">{{ total_all_sampling }}</div>
+                    </div>
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V18H8v2h8v-2h-3v-2.1c2.12-.39 3.79-2.02 3.98-4.16C19.08 11.43 21 9.35 21 7V6c0-1.1-.9-2-2-2z"/></svg>
+                    </div>
+                </div>
+                <div class="stat-sub">Cumulative specimen count</div>
+            </div>
+        </div>
+        <!-- Today's Fees -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #16a085, #1abc9c);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Today's Fees</div>
+                        <div class="value">{{ today_total_fees }}</div>
+                    </div>
+                    <div class="icon-wrapper">
+                        <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                    </div>
+                </div>
+                <div class="stat-sub">Moto: {{ today_moto_fee }} | Far: {{ today_far_away_fee }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Summary -->
+    <div class="today-summary">
+        <div class="today-summary-header">
+            <div class="header-left">
+                <span class="header-icon">📋</span>
+                <h6>Today's Collection Summary</h6>
+            </div>
+            <span class="today-count-pill">{{ today_entries_count }} {{ 'entry' if today_entries_count == 1 else 'entries' }}</span>
+        </div>
+
+        <div class="today-stats-row">
+            <div class="today-stat-item">
+                <span class="today-stat-value">{{ today_records|sum(attribute='total_sampling') }}</span>
+                <span class="today-stat-label">Specimens</span>
+            </div>
+            <div class="today-stat-item">
+                <span class="today-stat-value">{{ today_records|sum(attribute='patient_count') }}</span>
+                <span class="today-stat-label">Patients</span>
+            </div>
+            <div class="today-stat-item">
+                <span class="today-stat-value">{{ today_records|sum(attribute='moto_fee') + today_records|sum(attribute='far_away_fee') }}</span>
+                <span class="today-stat-label">Total Fees</span>
+            </div>
+        </div>
+
+        {% if today_records %}
+        <div class="today-entries-grid">
+            {% for r in today_records %}
+            <div class="entry-card">
+                <div class="entry-card-top">
+                    <div class="entry-location">
+                        <span class="loc-icon">🏥</span>
+                        <span class="loc-name">{{ r.location or 'Unknown' }}</span>
+                        {% if r.doctor %}
+                        <span class="doctor-tag">👨‍⚕️ {{ r.doctor }}</span>
+                        {% endif %}
+                    </div>
+                    {% if r.duration %}
+                    <span class="duration-tag">{{ r.duration }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="entry-time">
+                    <span class="time-call">📞 {{ r.call_time or 'N/A' }}</span>
+                    <span class="time-arrow">→</span>
+                    <span class="time-receive">📥 {{ r.receive_time or 'N/A' }}</span>
+                </div>
+
+                <div class="entry-metrics">
+                    <span class="metric-badge specimens">🧬 {{ r.total_sampling }} specimens</span>
+                    <span class="metric-badge patients">👤 {{ r.patient_count or 0 }} patients</span>
+                    <span class="metric-badge fees">💰 {{ (r.moto_fee or 0) + (r.far_away_fee or 0) }}</span>
+                </div>
+
+                {% if r.notes %}
+                <div class="entry-note">
+                    <span class="note-icon">📝</span>
+                    <span class="note-text">{{ r.notes }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-today">
+            <span class="empty-icon">🧪</span>
+            <p>No collections logged yet today — once you add one, it'll show up here.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Last 7 Days -->
+    {% set week_max = (last_7_days | map(attribute='sampling') | list | max) if last_7_days else 0 %}
+    {% set week_total = last_7_days | sum(attribute='sampling') %}
+    {% set week_entries = last_7_days | sum(attribute='entries') %}
+    {% set week_avg = (week_total / 7) | round(1) if last_7_days else 0 %}
+    <div class="custom-card">
+        <div class="card-header">
+            <span>📈 Last 7 Days Activity</span>
+            <span class="badge-count">{{ week_total }} total</span>
+        </div>
+        <div class="card-body">
+            <div class="weekly-chart">
+                {% for day in last_7_days %}
+                {% set pct = ((day.sampling / week_max) * 100) if week_max > 0 else 0 %}
+                <div class="day-col {% if day.date == today.strftime('%Y-%m-%d') %}is-today{% endif %} {% if day.sampling == 0 %}is-empty{% endif %}">
+                    <div class="day-value">{{ day.sampling }}</div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="height: {{ pct }}%;" title="{{ day.sampling }} specimen(s), {{ day.entries }} entr{{ 'y' if day.entries == 1 else 'ies' }}"></div>
+                    </div>
+                    <div class="day-name">{{ day.day_name }}</div>
+                    <div class="day-date">{{ day.date[-5:] }}</div>
+                    <div class="day-entries">{% if day.entries > 0 %}{{ day.entries }} entr{{ 'y' if day.entries == 1 else 'ies' }}{% else %}—{% endif %}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="weekly-summary-strip">
+                <div>
+                    <div class="ws-value">{{ week_total }}</div>
+                    <div class="ws-label">Specimens (7d)</div>
+                </div>
+                <div>
+                    <div class="ws-value">{{ week_entries }}</div>
+                    <div class="ws-label">Entries (7d)</div>
+                </div>
+                <div>
+                    <div class="ws-value">{{ week_avg }}</div>
+                    <div class="ws-label">Avg / day</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="custom-card">
+        <div class="card-header">
+            <span>📋 {{ period_label }} Collection Logs</span>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="period-tabs">
+                    <a href="{{ url_for('dashboard', period='daily') }}" class="{% if period == 'daily' and not from_date %}active{% endif %}">Daily</a>
+                    <a href="{{ url_for('dashboard', period='weekly') }}" class="{% if period == 'weekly' and not from_date %}active{% endif %}">Weekly</a>
+                    <a href="{{ url_for('dashboard', period='monthly') }}" class="{% if period == 'monthly' and not from_date %}active{% endif %}">Monthly</a>
+                    <a href="{{ url_for('dashboard', period='yearly') }}" class="{% if period == 'yearly' and not from_date %}active{% endif %}">Yearly</a>
+                    {% if from_date and to_date %}<a href="#" class="active" style="background: #e8f0fe; color: var(--cml-blue);">Custom</a>{% endif %}
+                </div>
+                <a href="{{ url_for('add_record') }}" class="btn btn-sm btn-outline-primary fw-semibold">+ New Record</a>
+            </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <form method="GET" action="{{ url_for('dashboard') }}" class="date-range-filter">
+            <label for="from_date">From</label>
+            <input type="date" name="from_date" id="from_date" value="{{ from_date or '' }}">
+            <label for="to_date">To</label>
+            <input type="date" name="to_date" id="to_date" value="{{ to_date or '' }}">
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-sm btn-primary" style="background-color: var(--cml-blue); border: none;">Apply</button>
+                <a href="{{ url_for('dashboard', period='monthly') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                {% if from_date and to_date %}
+                <span class="badge-period">Custom: {{ from_date }} → {{ to_date }}</span>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if filtered_records %}
+        <div class="period-summary-strip">
+            <div class="ps-item"><span class="ps-value">{{ filtered_total_records }}</span><span class="ps-label">Records</span></div>
+            <div class="ps-item"><span class="ps-value">{{ filtered_total_sampling }}</span><span class="ps-label">Specimens</span></div>
+            <div class="ps-item"><span class="ps-value">{{ filtered_total_patients }}</span><span class="ps-label">Patients</span></div>
+            <div class="ps-item"><span class="ps-value">{{ filtered_total_fees }}</span><span class="ps-label">Total Fees</span></div>
+            <div class="ps-item"><span class="ps-value">{{ filtered_avg }}</span><span class="ps-label">Avg / record</span></div>
+        </div>
+        {% endif %}
+
+        <div class="card-body p-0">
+            {% if filtered_records %}
+            <!-- Desktop / tablet table -->
+            <div class="table-responsive table-view">
+                <table class="table table-hover align-middle mb-0 collection-logs-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Date</th>
+                            <th>Clinic / Hospital</th>
+                            <th>Doctor</th>
+                            <th class="col-call">Call</th>
+                            <th class="col-receive">Receive</th>
+                            <th class="col-duration">Duration</th>
+                            <th>Samples</th>
+                            <th>Specimens</th>
+                            <th class="col-moto">Moto</th>
+                            <th class="col-far">Far</th>
+                            <th>Total Fee</th>
+                            <th class="col-types">Types</th>
+                            <th>Notes</th>
+                            <th class="text-center pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in filtered_records %}
+                        <tr>
+                            <td class="ps-4 fw-semibold text-dark">{{ r.date.strftime('%Y-%m-%d') }}</td>
+                            <td><strong>{{ r.location or '-' }}</strong></td>
+                            <td>{{ r.doctor or '-' }}</td>
+                            <td class="col-call">{{ r.call_time or '-' }}</td>
+                            <td class="col-receive">{{ r.receive_time or '-' }}</td>
+                            <td class="col-duration">
+                                {% if r.duration %}
+                                <span class="duration-badge">{{ r.duration }}</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-info text-dark">{{ r.patient_count or 0 }}</span></td>
+                            <td><span class="badge bg-success">{{ r.total_sampling }}</span></td>
+                            <td class="col-moto">{{ r.moto_fee or 0 }}</td>
+                            <td class="col-far">{{ r.far_away_fee or 0 }}</td>
+                            <td><strong>{{ (r.moto_fee or 0) + (r.far_away_fee or 0) }}</strong></td>
+                            <td class="col-types">
+                                {% if r.sample_types_json %}
+                                <small>{{ get_sample_types_display(r.sample_types_json) }}</small>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="notes-cell">
+                                {% if r.notes %}
+                                <span class="notes-text" title="{{ r.notes }}">{{ r.notes }}</span>
+                                {% else %}
+                                <span class="notes-empty">No notes</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center pe-4">
+                                <a href="{{ url_for('edit_record', record_id=r.id) }}" class="action-btn bg-warning me-1" title="Edit">
+                                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                </a>
+                                <a href="{{ url_for('delete_record', record_id=r.id) }}" class="action-btn bg-danger delete-btn" data-id="{{ r.id }}" title="Delete">
+                                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile card view -->
+            <div class="card-view">
+                {% for r in filtered_records %}
+                <div class="log-card">
+                    <div class="log-card-header">
+                        <div>
+                            <div class="log-card-date">{{ r.date.strftime('%Y-%m-%d') }}</div>
+                            <div class="log-card-location">{{ r.location or 'Unknown' }}</div>
+                        </div>
+                        {% if r.duration %}
+                        <span class="duration-badge">{{ r.duration }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="log-card-meta">
+                        {% if r.doctor %}<span>👨‍⚕️ {{ r.doctor }}</span>{% endif %}
+                        <span>📞 {{ r.call_time or 'N/A' }} → 📥 {{ r.receive_time or 'N/A' }}</span>
+                    </div>
+
+                    <div class="log-card-metrics">
+                        <span class="metric-badge patients">👤 {{ r.patient_count or 0 }}</span>
+                        <span class="metric-badge specimens">🧬 {{ r.total_sampling }}</span>
+                        <span class="metric-badge fees">💰 {{ (r.moto_fee or 0) + (r.far_away_fee or 0) }}</span>
+                    </div>
+
+                    {% if r.notes %}
+                    <div class="entry-note" style="margin-top:6px; border-top:none; padding-top:0;">
+                        <span class="note-icon">📝</span>
+                        <span class="note-text">{{ r.notes }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="log-card-actions">
+                        <a href="{{ url_for('edit_record', record_id=r.id) }}" class="action-btn bg-warning" title="Edit">
+                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </a>
+                        <a href="{{ url_for('delete_record', record_id=r.id) }}" class="action-btn bg-danger delete-btn" data-id="{{ r.id }}" title="Delete">
+                            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🧪</div>
+                <p class="text-muted mb-3">No records found for this {{ period }} period.</p>
+                <a href="{{ url_for('add_record') }}" class="btn btn-primary" style="background-color: var(--cml-blue); border: none; border-radius: 8px; font-weight: 600;">Add First Daily Record</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal (self-contained — no Bootstrap JS dependency) -->
+<div class="cml-modal-overlay" id="deleteModal">
+    <div class="cml-modal-box">
+        <div class="cml-modal-header">
+            <h5 class="cml-modal-title">⚠️ Confirm Deletion</h5>
+            <button type="button" class="cml-modal-close" id="deleteModalCloseX" aria-label="Close">&times;</button>
+        </div>
+        <div class="cml-modal-body">
+            <p class="mb-0">Are you sure you want to delete this collection record? This action cannot be undone.</p>
+        </div>
+        <div class="cml-modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" id="deleteModalCancel">Cancel</button>
+            <a href="#" id="confirmDeleteBtn" class="btn btn-danger btn-sm">Delete</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Self-contained modal — deliberately independent of Bootstrap's JS
+       so the confirmation dialog can never be skipped just because
+       bootstrap.bundle.js is missing, deferred, or loaded out of order. */
+    .cml-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 36, 56, 0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .cml-modal-overlay.is-open { display: flex; }
+    .cml-modal-box {
+        background: #fff;
+        border-radius: 12px;
+        max-width: 420px;
+        width: 100%;
+        box-shadow: 0 24px 60px rgba(15, 36, 56, 0.25);
+        overflow: hidden;
+    }
+    .cml-modal-header {
+        background: #d9534f;
+        color: #fff;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .cml-modal-title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+    .cml-modal-close {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 0.85;
+    }
+    .cml-modal-close:hover { opacity: 1; }
+    .cml-modal-body { padding: 20px; color: #2d3748; font-size: 0.92rem; }
+    .cml-modal-footer {
+        padding: 12px 20px 18px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+</style>
+
+<script>
+    (function () {
+        var overlay = document.getElementById('deleteModal');
+        var confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        var cancelBtn = document.getElementById('deleteModalCancel');
+        var closeXBtn = document.getElementById('deleteModalCloseX');
+
+        function openModal(deleteUrl) {
+            confirmDeleteBtn.href = deleteUrl;
+            overlay.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeModal() {
+            overlay.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+
+        // Event delegation: works for both the desktop table and the
+        // mobile card view, and for rows rendered after this script runs.
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.delete-btn');
+            if (btn) {
+                e.preventDefault();
+                openModal('/delete_record/' + btn.getAttribute('data-id'));
+            }
+        });
+
+        cancelBtn.addEventListener('click', closeModal);
+        closeXBtn.addEventListener('click', closeModal);
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeModal();
+        });
+    })();
+</script>
+{% endblock %}

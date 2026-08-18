@@ -1,0 +1,2527 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Print Report - {{ member.full_name }}
+    </title>
+
+
+    <style>
+
+        /* =====================================================
+           RESET
+           ===================================================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+            margin: 0;
+
+            padding: 0;
+
+            background:
+                #f3f6f9;
+
+            color:
+                #25313d;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+
+            line-height: 1.5;
+        }
+
+
+        button {
+            font-family: inherit;
+        }
+
+
+        /* =====================================================
+           PAGE CONTAINER
+           ===================================================== */
+
+        .report-page {
+            width: 100%;
+
+            max-width: 1500px;
+
+            margin: 0 auto;
+
+            padding:
+                clamp(14px, 3vw, 34px);
+        }
+
+
+        /* =====================================================
+           TOP TOOLBAR
+           ===================================================== */
+
+        .toolbar {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 18px;
+
+            padding:
+                12px 14px;
+
+            background: #ffffff;
+
+            border:
+                1px solid #e3e8ee;
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 4px 16px
+                rgba(15, 23, 42, .05);
+        }
+
+
+        .toolbar-left {
+            min-width: 0;
+        }
+
+
+        .toolbar-title {
+            margin: 0;
+
+            color: #344454;
+
+            font-size: .82rem;
+
+            font-weight: 800;
+        }
+
+
+        .toolbar-subtitle {
+            margin: 2px 0 0;
+
+            color: #8a96a3;
+
+            font-size: .68rem;
+        }
+
+
+        .toolbar-actions {
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            flex-shrink: 0;
+        }
+
+
+        .toolbar-btn {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 7px;
+
+            min-height: 40px;
+
+            padding:
+                0 15px;
+
+            border-radius: 9px;
+
+            font-size: .72rem;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            white-space: nowrap;
+
+            transition:
+                .2s ease;
+        }
+
+
+        .btn-print {
+            border:
+                1px solid #2b5d8d;
+
+            background:
+                #2b5d8d;
+
+            color: #ffffff;
+        }
+
+
+        .btn-print:hover {
+            background:
+                #21496e;
+
+            border-color:
+                #21496e;
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        .btn-close {
+            border:
+                1px solid #d8e0e7;
+
+            background:
+                #ffffff;
+
+            color:
+                #5d6976;
+        }
+
+
+        .btn-close:hover {
+            background:
+                #f5f7f9;
+
+            border-color:
+                #c7d1da;
+
+            color:
+                #344454;
+        }
+
+
+        /* =====================================================
+           REPORT SHEET
+           ===================================================== */
+
+        .report-sheet {
+            width: 100%;
+
+            background: #ffffff;
+
+            border:
+                1px solid #e1e7ed;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 8px 35px
+                rgba(15, 23, 42, .07);
+
+            overflow: hidden;
+        }
+
+
+        /* =====================================================
+           REPORT HEADER
+           ===================================================== */
+
+        .report-header {
+            position: relative;
+
+            padding:
+                clamp(24px, 4vw, 42px);
+
+            text-align: center;
+
+            border-bottom:
+                1px solid #e5e9ee;
+
+            overflow: hidden;
+        }
+
+
+        .report-header::before {
+            content: "";
+
+            position: absolute;
+
+            width: 260px;
+
+            height: 260px;
+
+            top: -150px;
+
+            right: -90px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(43, 93, 141, .055);
+
+            pointer-events: none;
+        }
+
+
+        .report-brand {
+            position: relative;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 9px;
+
+            margin-bottom: 10px;
+
+            color:
+                #2b5d8d;
+
+            font-size:
+                clamp(
+                    .78rem,
+                    2vw,
+                    .95rem
+                );
+
+            font-weight: 900;
+
+            letter-spacing:
+                .8px;
+        }
+
+
+        .report-title {
+            position: relative;
+
+            margin:
+                0 0 5px;
+
+            color:
+                #263746;
+
+            font-size:
+                clamp(
+                    1.25rem,
+                    3vw,
+                    1.75rem
+                );
+
+            line-height:
+                1.2;
+
+            font-weight:
+                800;
+        }
+
+
+        .report-member {
+            position: relative;
+
+            margin:
+                0 0 12px;
+
+            color:
+                #667482;
+
+            font-size:
+                clamp(
+                    .8rem,
+                    2vw,
+                    .95rem
+                );
+
+            font-weight:
+                600;
+        }
+
+
+        .report-type {
+            position: relative;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 30px;
+
+            padding:
+                0 14px;
+
+            border:
+                1px solid #cbddec;
+
+            border-radius:
+                999px;
+
+            background:
+                #eef6fc;
+
+            color:
+                #2b5d8d;
+
+            font-size:
+                .66rem;
+
+            font-weight:
+                800;
+
+            letter-spacing:
+                .3px;
+        }
+
+
+        /* =====================================================
+           REPORT BODY
+           ===================================================== */
+
+        .report-body {
+            padding:
+                clamp(18px, 3vw, 32px);
+        }
+
+
+        /* =====================================================
+           INFORMATION GRID
+           ===================================================== */
+
+        .information-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    4,
+                    minmax(0, 1fr)
+                );
+
+            gap: 10px;
+
+            margin-bottom: 24px;
+        }
+
+
+        .information-item {
+            min-width: 0;
+
+            padding:
+                12px 13px;
+
+            border:
+                1px solid #e6ebef;
+
+            border-radius: 10px;
+
+            background:
+                #fafbfc;
+        }
+
+
+        .information-label {
+            display: block;
+
+            margin-bottom: 3px;
+
+            color:
+                #8a96a3;
+
+            font-size:
+                .58rem;
+
+            font-weight:
+                800;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                .5px;
+        }
+
+
+        .information-value {
+            display: block;
+
+            color:
+                #344454;
+
+            font-size:
+                .72rem;
+
+            font-weight:
+                700;
+
+            overflow:
+                hidden;
+
+            text-overflow:
+                ellipsis;
+
+            white-space:
+                nowrap;
+        }
+
+
+        /* =====================================================
+           SECTION TITLE
+           ===================================================== */
+
+        .section-heading {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin:
+                0 0 12px;
+        }
+
+
+        .section-heading-left {
+            min-width: 0;
+        }
+
+
+        .section-heading h3 {
+            margin: 0;
+
+            color:
+                #344454;
+
+            font-size:
+                .9rem;
+
+            font-weight:
+                800;
+        }
+
+
+        .section-heading p {
+            margin:
+                2px 0 0;
+
+            color:
+                #8a96a3;
+
+            font-size:
+                .65rem;
+        }
+
+
+        /* =====================================================
+           SUMMARY STATISTICS
+           ===================================================== */
+
+        .stats-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    4,
+                    minmax(0, 1fr)
+                );
+
+            gap: 12px;
+
+            margin-bottom: 26px;
+        }
+
+
+        .stat-card {
+            position: relative;
+
+            min-width: 0;
+
+            padding:
+                17px;
+
+            border:
+                1px solid #e3e9ee;
+
+            border-radius: 13px;
+
+            background:
+                #ffffff;
+
+            overflow: hidden;
+        }
+
+
+        .stat-card::after {
+            content: "";
+
+            position: absolute;
+
+            width: 70px;
+
+            height: 70px;
+
+            right: -25px;
+
+            bottom: -30px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(43, 93, 141, .05);
+        }
+
+
+        .stat-label {
+            display: block;
+
+            margin-bottom: 5px;
+
+            color:
+                #8a96a3;
+
+            font-size:
+                .59rem;
+
+            font-weight:
+                800;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                .5px;
+        }
+
+
+        .stat-value {
+            display: block;
+
+            color:
+                #2b5d8d;
+
+            font-size:
+                clamp(
+                    1.15rem,
+                    2.5vw,
+                    1.5rem
+                );
+
+            line-height:
+                1.1;
+
+            font-weight:
+                900;
+        }
+
+
+        /* =====================================================
+           LOCATION SUMMARY
+           ===================================================== */
+
+        .location-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(
+                        180px,
+                        1fr
+                    )
+                );
+
+            gap: 10px;
+
+            margin-bottom: 26px;
+        }
+
+
+        .location-card {
+            min-width: 0;
+
+            padding:
+                14px;
+
+            border:
+                1px solid #e5eaef;
+
+            border-radius: 12px;
+
+            background:
+                #fafcfd;
+        }
+
+
+        .location-name {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color:
+                #667482;
+
+            font-size:
+                .66rem;
+
+            font-weight:
+                800;
+
+            overflow:
+                hidden;
+
+            text-overflow:
+                ellipsis;
+
+            white-space:
+                nowrap;
+        }
+
+
+        .location-total {
+            display: block;
+
+            margin-bottom: 2px;
+
+            color:
+                #2b5d8d;
+
+            font-size:
+                1.15rem;
+
+            font-weight:
+                900;
+        }
+
+
+        .location-entries {
+            color:
+                #9aa5b0;
+
+            font-size:
+                .6rem;
+
+            font-weight:
+                600;
+        }
+
+
+        /* =====================================================
+           TABLE WRAPPER
+           ===================================================== */
+
+        .table-section {
+            width: 100%;
+
+            margin-top: 8px;
+        }
+
+
+        .table-scroll {
+            width: 100%;
+
+            overflow-x: auto;
+
+            overflow-y: hidden;
+
+            border:
+                1px solid #dfe5ea;
+
+            border-radius: 12px;
+
+            -webkit-overflow-scrolling:
+                touch;
+        }
+
+
+        .table-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+
+        .table-scroll::-webkit-scrollbar-track {
+            background:
+                #f1f3f5;
+        }
+
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background:
+                #c5ced7;
+
+            border-radius:
+                999px;
+        }
+
+
+        .report-table {
+            width: 100%;
+
+            min-width: 1050px;
+
+            border-collapse:
+                separate;
+
+            border-spacing: 0;
+
+            background:
+                #ffffff;
+        }
+
+
+        /* =====================================================
+           TABLE HEADER
+           ===================================================== */
+
+        .report-table thead th {
+            padding:
+                11px 10px;
+
+            border-bottom:
+                1px solid #263746;
+
+            background:
+                #263746;
+
+            color:
+                #ffffff;
+
+            font-size:
+                .59rem;
+
+            line-height:
+                1.3;
+
+            font-weight:
+                800;
+
+            text-align:
+                left;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                .35px;
+
+            white-space:
+                nowrap;
+        }
+
+
+        .report-table thead th:first-child {
+            padding-left:
+                13px;
+
+            border-top-left-radius:
+                11px;
+        }
+
+
+        .report-table thead th:last-child {
+            border-top-right-radius:
+                11px;
+        }
+
+
+        .report-table th.text-center,
+        .report-table td.text-center {
+            text-align:
+                center;
+        }
+
+
+        /* =====================================================
+           TABLE BODY
+           ===================================================== */
+
+        .report-table tbody td {
+            padding:
+                10px;
+
+            border-bottom:
+                1px solid #edf0f3;
+
+            color:
+                #52606d;
+
+            font-size:
+                .68rem;
+
+            vertical-align:
+                middle;
+        }
+
+
+        .report-table tbody tr {
+            transition:
+                background .15s ease;
+        }
+
+
+        .report-table tbody tr:hover {
+            background:
+                #f7fafc;
+        }
+
+
+        .report-table tbody tr:last-child td {
+            border-bottom:
+                none;
+        }
+
+
+        .report-table tbody td:first-child {
+            padding-left:
+                13px;
+
+            color:
+                #8b96a1;
+
+            font-weight:
+                700;
+        }
+
+
+        .record-location {
+            color:
+                #344454;
+
+            font-weight:
+                800;
+        }
+
+
+        .record-notes {
+            max-width:
+                180px;
+
+            color:
+                #7c8792;
+
+            overflow:
+                hidden;
+
+            text-overflow:
+                ellipsis;
+
+            white-space:
+                nowrap;
+        }
+
+
+        /* =====================================================
+           BADGES
+           ===================================================== */
+
+        .report-badge {
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            min-height:
+                22px;
+
+            padding:
+                0 8px;
+
+            border-radius:
+                999px;
+
+            border:
+                1px solid transparent;
+
+            font-size:
+                .57rem;
+
+            line-height:
+                1;
+
+            font-weight:
+                800;
+
+            white-space:
+                nowrap;
+        }
+
+
+        .badge-duration {
+            background:
+                #eef5fb;
+
+            color:
+                #2b5d8d;
+
+            border-color:
+                #d6e5f2;
+        }
+
+
+        .badge-patients {
+            background:
+                #edf9f2;
+
+            color:
+                #198754;
+
+            border-color:
+                #c9ead7;
+        }
+
+
+        .badge-specimens {
+            background:
+                #fff7e9;
+
+            color:
+                #c47708;
+
+            border-color:
+                #f6dfb4;
+        }
+
+
+        .badge-types {
+            max-width:
+                190px;
+
+            background:
+                #eef9f2;
+
+            color:
+                #258451;
+
+            border-color:
+                #cce9d8;
+
+            overflow:
+                hidden;
+
+            text-overflow:
+                ellipsis;
+        }
+
+
+        /* =====================================================
+           TABLE FOOTER
+           ===================================================== */
+
+        .report-table tfoot td {
+            padding:
+                11px 10px;
+
+            border-top:
+                2px solid #d7dee5;
+
+            background:
+                #f5f7f9;
+
+            color:
+                #344454;
+
+            font-size:
+                .68rem;
+
+            font-weight:
+                800;
+        }
+
+
+        .report-table tfoot td:first-child {
+            padding-left:
+                13px;
+        }
+
+
+        /* =====================================================
+           NO RECORDS
+           ===================================================== */
+
+        .empty-records {
+            padding:
+                40px 20px;
+
+            text-align:
+                center;
+
+            border:
+                1px dashed #d5dde5;
+
+            border-radius:
+                12px;
+
+            background:
+                #fafbfc;
+        }
+
+
+        .empty-records-icon {
+            margin-bottom:
+                8px;
+
+            font-size:
+                30px;
+        }
+
+
+        .empty-records-title {
+            margin:
+                0 0 4px;
+
+            color:
+                #455463;
+
+            font-size:
+                .85rem;
+
+            font-weight:
+                800;
+        }
+
+
+        .empty-records-text {
+            margin:
+                0;
+
+            color:
+                #929ca6;
+
+            font-size:
+                .68rem;
+        }
+
+
+        /* =====================================================
+           SIGNATURE SECTION
+           ===================================================== */
+
+        .signature-section {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    3,
+                    minmax(0, 1fr)
+                );
+
+            gap: 25px;
+
+            margin-top:
+                45px;
+
+            padding-top:
+                30px;
+
+            border-top:
+                1px solid #e4e9ed;
+        }
+
+
+        .signature-block {
+            min-width: 0;
+
+            text-align:
+                center;
+        }
+
+
+        .signature-line {
+            width:
+                min(210px, 100%);
+
+            margin:
+                0 auto 8px;
+
+            border-bottom:
+                1px solid #596773;
+
+            height:
+                32px;
+        }
+
+
+        .signature-name {
+            margin:
+                0 0 2px;
+
+            color:
+                #344454;
+
+            font-size:
+                .72rem;
+
+            font-weight:
+                800;
+        }
+
+
+        .signature-role {
+            margin:
+                0;
+
+            color:
+                #9aa4ae;
+
+            font-size:
+                .6rem;
+        }
+
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+
+        .report-footer {
+            margin-top:
+                35px;
+
+            padding-top:
+                14px;
+
+            border-top:
+                1px solid #e6eaee;
+
+            text-align:
+                center;
+
+            color:
+                #a0a8b0;
+
+            font-size:
+                .59rem;
+        }
+
+
+        /* =====================================================
+           TABLET
+           ===================================================== */
+
+        @media (max-width: 1000px) {
+
+            .information-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+
+            .stats-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 700px) {
+
+            body {
+                background:
+                    #ffffff;
+            }
+
+
+            .report-page {
+                padding:
+                    10px;
+            }
+
+
+            .toolbar {
+                align-items:
+                    stretch;
+
+                flex-direction:
+                    column;
+            }
+
+
+            .toolbar-actions {
+                width:
+                    100%;
+            }
+
+
+            .toolbar-btn {
+                flex:
+                    1;
+            }
+
+
+            .report-sheet {
+                border-radius:
+                    12px;
+            }
+
+
+            .report-body {
+                padding:
+                    14px;
+            }
+
+
+            .information-grid {
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            .stats-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+
+                gap:
+                    8px;
+            }
+
+
+            .stat-card {
+                padding:
+                    13px;
+            }
+
+
+            .location-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+            }
+
+
+            .section-heading {
+                align-items:
+                    flex-start;
+
+                flex-direction:
+                    column;
+
+                gap:
+                    3px;
+            }
+
+
+            .signature-section {
+                grid-template-columns:
+                    1fr;
+
+                gap:
+                    30px;
+
+                margin-top:
+                    35px;
+            }
+
+        }
+
+
+        /* =====================================================
+           SMALL MOBILE
+           ===================================================== */
+
+        @media (max-width: 430px) {
+
+            .toolbar-actions {
+                flex-direction:
+                    column;
+            }
+
+
+            .toolbar-btn {
+                width:
+                    100%;
+            }
+
+
+            .report-header {
+                padding:
+                    22px 14px;
+            }
+
+
+            .stats-grid {
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+
+            .location-grid {
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            .information-value {
+                white-space:
+                    normal;
+
+                overflow:
+                    visible;
+
+                text-overflow:
+                    unset;
+            }
+
+        }
+
+
+        /* =====================================================
+           PRINT
+           ===================================================== */
+
+        @media print {
+
+            @page {
+                size:
+                    A4 landscape;
+
+                margin:
+                    10mm;
+            }
+
+
+            html {
+                font-size:
+                    10px;
+            }
+
+
+            body {
+                background:
+                    #ffffff;
+
+                color:
+                    #000000;
+            }
+
+
+            .no-print,
+            .toolbar {
+                display:
+                    none !important;
+            }
+
+
+            .report-page {
+                max-width:
+                    none;
+
+                padding:
+                    0;
+
+                margin:
+                    0;
+            }
+
+
+            .report-sheet {
+                border:
+                    none;
+
+                border-radius:
+                    0;
+
+                box-shadow:
+                    none;
+
+                overflow:
+                    visible;
+            }
+
+
+            .report-header {
+                padding:
+                    12px 0 14px;
+
+                border-bottom:
+                    1px solid #cfd5db;
+            }
+
+
+            .report-body {
+                padding:
+                    14px 0 0;
+            }
+
+
+            .information-grid {
+                grid-template-columns:
+                    repeat(
+                        4,
+                        minmax(0, 1fr)
+                    );
+
+                gap:
+                    6px;
+
+                margin-bottom:
+                    12px;
+            }
+
+
+            .information-item {
+                padding:
+                    7px 8px;
+
+                border-radius:
+                    5px;
+            }
+
+
+            .information-label {
+                font-size:
+                    7px;
+            }
+
+
+            .information-value {
+                font-size:
+                    8px;
+            }
+
+
+            .stats-grid {
+                grid-template-columns:
+                    repeat(
+                        4,
+                        minmax(0, 1fr)
+                    );
+
+                gap:
+                    7px;
+
+                margin-bottom:
+                    14px;
+            }
+
+
+            .stat-card {
+                padding:
+                    8px;
+
+                border-radius:
+                    6px;
+            }
+
+
+            .stat-label {
+                font-size:
+                    7px;
+            }
+
+
+            .stat-value {
+                font-size:
+                    15px;
+            }
+
+
+            .location-grid {
+                grid-template-columns:
+                    repeat(
+                        4,
+                        minmax(0, 1fr)
+                    );
+
+                gap:
+                    6px;
+
+                margin-bottom:
+                    14px;
+            }
+
+
+            .location-card {
+                padding:
+                    7px;
+
+                border-radius:
+                    6px;
+            }
+
+
+            .location-name {
+                font-size:
+                    7px;
+            }
+
+
+            .location-total {
+                font-size:
+                    13px;
+            }
+
+
+            .location-entries {
+                font-size:
+                    7px;
+            }
+
+
+            .table-scroll {
+                overflow:
+                    visible;
+
+                border:
+                    none;
+            }
+
+
+            .report-table {
+                width:
+                    100%;
+
+                min-width:
+                    0;
+
+                table-layout:
+                    fixed;
+            }
+
+
+            .report-table thead th {
+                padding:
+                    6px 4px;
+
+                font-size:
+                    7px;
+            }
+
+
+            .report-table tbody td {
+                padding:
+                    5px 4px;
+
+                font-size:
+                    7px;
+            }
+
+
+            .report-table tfoot td {
+                padding:
+                    6px 4px;
+
+                font-size:
+                    7px;
+            }
+
+
+            .report-badge {
+                min-height:
+                    16px;
+
+                padding:
+                    0 4px;
+
+                font-size:
+                    6px;
+            }
+
+
+            .record-notes {
+                max-width:
+                    none;
+
+                white-space:
+                    normal;
+            }
+
+
+            .badge-types {
+                max-width:
+                    none;
+
+                white-space:
+                    normal;
+            }
+
+
+            .signature-section {
+                margin-top:
+                    25px;
+
+                padding-top:
+                    15px;
+
+                gap:
+                    15px;
+            }
+
+
+            .signature-line {
+                height:
+                    22px;
+            }
+
+
+            .signature-name {
+                font-size:
+                    7px;
+            }
+
+
+            .signature-role {
+                font-size:
+                    6px;
+            }
+
+
+            .report-footer {
+                margin-top:
+                    15px;
+
+                padding-top:
+                    7px;
+
+                font-size:
+                    6px;
+            }
+
+
+            /*
+             * Keep table rows together when possible.
+             */
+
+            .report-table tr {
+                break-inside:
+                    avoid;
+
+                page-break-inside:
+                    avoid;
+            }
+
+
+            /*
+             * Repeat table header on new pages.
+             */
+
+            .report-table thead {
+                display:
+                    table-header-group;
+            }
+
+
+            .report-table tfoot {
+                display:
+                    table-footer-group;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="report-page">
+
+
+    <!-- =====================================================
+         TOOLBAR
+         ===================================================== -->
+
+    <div class="toolbar no-print">
+
+
+        <div class="toolbar-left">
+
+            <p class="toolbar-title">
+                📄 Report Preview
+            </p>
+
+            <p class="toolbar-subtitle">
+                Review the report before printing
+            </p>
+
+        </div>
+
+
+        <div class="toolbar-actions">
+
+            <button
+                type="button"
+                onclick="window.print()"
+                class="toolbar-btn btn-print"
+            >
+                🖨️
+                <span>Print Report</span>
+            </button>
+
+
+            <button
+                type="button"
+                onclick="window.close()"
+                class="toolbar-btn btn-close"
+            >
+                ✕
+                <span>Close</span>
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         REPORT SHEET
+         ===================================================== -->
+
+    <div class="report-sheet">
+
+
+        <!-- =================================================
+             REPORT HEADER
+             ================================================= -->
+
+        <header class="report-header">
+
+
+            <div class="report-brand">
+
+                <span>🔬</span>
+
+                <span>
+                    CAMMED LAB
+                </span>
+
+            </div>
+
+
+            <h1 class="report-title">
+                Collection Management System
+            </h1>
+
+
+            <p class="report-member">
+                {{ member.full_name }}
+                — Performance Report
+            </p>
+
+
+            <div class="report-type">
+                {{ title }}
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             REPORT BODY
+             ================================================= -->
+
+        <main class="report-body">
+
+
+            <!-- =============================================
+                 INFORMATION
+                 ============================================= -->
+
+            <div class="information-grid">
+
+
+                <div class="information-item">
+
+                    <span class="information-label">
+                        Member Name
+                    </span>
+
+                    <span class="information-value">
+                        {{ member.full_name }}
+                    </span>
+
+                </div>
+
+
+                <div class="information-item">
+
+                    <span class="information-label">
+                        Username
+                    </span>
+
+                    <span class="information-value">
+                        {{ member.username }}
+                    </span>
+
+                </div>
+
+
+                <div class="information-item">
+
+                    <span class="information-label">
+                        Report Period
+                    </span>
+
+                    <span class="information-value">
+                        {{ title }}
+                    </span>
+
+                </div>
+
+
+                <div class="information-item">
+
+                    <span class="information-label">
+                        Generated
+                    </span>
+
+                    <span class="information-value">
+                        {{ now.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =============================================
+                 SUMMARY
+                 ============================================= -->
+
+            <div class="section-heading">
+
+                <div class="section-heading-left">
+
+                    <h3>
+                        Collection Summary
+                    </h3>
+
+                    <p>
+                        Overview of collection activity for this period
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="stats-grid">
+
+
+                <!-- TOTAL ENTRIES -->
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        📋 Total Entries
+                    </span>
+
+                    <span class="stat-value">
+                        {{ total_records }}
+                    </span>
+
+                </div>
+
+
+                <!-- TOTAL SPECIMENS -->
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        🧪 Total Specimens
+                    </span>
+
+                    <span class="stat-value">
+                        {{ total_sampling }}
+                    </span>
+
+                </div>
+
+
+                <!-- AVERAGE -->
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        📊 Average / Record
+                    </span>
+
+                    <span class="stat-value">
+                        {{ average_sampling }}
+                    </span>
+
+                </div>
+
+
+                <!-- HIGHEST -->
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        🏆 Highest
+                    </span>
+
+                    <span class="stat-value">
+                        {{ highest }}
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =============================================
+                 LOCATION SUMMARY
+                 ============================================= -->
+
+            {% if location_summary %}
+
+            <div class="section-heading">
+
+                <div class="section-heading-left">
+
+                    <h3>
+                        Collection Locations
+                    </h3>
+
+                    <p>
+                        Collection activity grouped by clinic or hospital
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="location-grid">
+
+
+                {% for loc, data in location_summary.items() %}
+
+
+                <div
+                    class="location-card"
+                    title="{{ loc }}"
+                >
+
+                    <span class="location-name">
+                        📍 {{ loc }}
+                    </span>
+
+
+                    <span class="location-total">
+                        {{ data.total }}
+                    </span>
+
+
+                    <span class="location-entries">
+
+                        {{ data.count }}
+
+                        {% if data.count == 1 %}
+                            entry
+                        {% else %}
+                            entries
+                        {% endif %}
+
+                    </span>
+
+                </div>
+
+
+                {% endfor %}
+
+
+            </div>
+
+            {% endif %}
+
+
+
+            <!-- =============================================
+                 RECORDS
+                 ============================================= -->
+
+            <div class="table-section">
+
+
+                <div class="section-heading">
+
+                    <div class="section-heading-left">
+
+                        <h3>
+                            Collection Records
+                        </h3>
+
+                        <p>
+                            Detailed collection activity during this report period
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                {% if records %}
+
+
+                <div class="table-scroll">
+
+
+                    <table class="report-table">
+
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    No.
+                                </th>
+
+                                <th>
+                                    Date
+                                </th>
+
+                                <th>
+                                    Call Time
+                                </th>
+
+                                <th>
+                                    Receive Time
+                                </th>
+
+                                <th>
+                                    Duration
+                                </th>
+
+                                <th>
+                                    Clinic / Hospital
+                                </th>
+
+                                <th>
+                                    Doctor
+                                </th>
+
+                                <th class="text-center">
+                                    Samples
+                                </th>
+
+                                <th class="text-center">
+                                    Specimens
+                                </th>
+
+                                <th>
+                                    Sample Types
+                                </th>
+
+                                <th>
+                                    Notes
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+
+                            {% for record in records %}
+
+
+                            <tr>
+
+
+                                <!-- NUMBER -->
+
+                                <td>
+                                    {{ loop.index }}
+                                </td>
+
+
+                                <!-- DATE -->
+
+                                <td>
+
+                                    {{ record.date.strftime('%Y-%m-%d') }}
+
+                                </td>
+
+
+                                <!-- CALL TIME -->
+
+                                <td>
+                                    {{ record.call_time or '-' }}
+                                </td>
+
+
+                                <!-- RECEIVE TIME -->
+
+                                <td>
+                                    {{ record.receive_time or '-' }}
+                                </td>
+
+
+                                <!-- DURATION -->
+
+                                <td>
+
+                                    {% if record.duration %}
+
+                                    <span class="report-badge badge-duration">
+
+                                        {{ record.duration }}
+
+                                    </span>
+
+                                    {% else %}
+
+                                    -
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- LOCATION -->
+
+                                <td>
+
+                                    <span class="record-location">
+
+                                        {{ record.location or '-' }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- DOCTOR -->
+
+                                <td>
+                                    {{ record.doctor or '-' }}
+                                </td>
+
+
+                                <!-- PATIENTS -->
+
+                                <td class="text-center">
+
+                                    <span class="report-badge badge-patients">
+
+                                        {{
+                                            record.patient_count
+                                            if record.patient_count is not none
+                                            else 1
+                                        }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- SPECIMENS -->
+
+                                <td class="text-center">
+
+                                    <span class="report-badge badge-specimens">
+
+                                        {{ record.total_sampling }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- SAMPLE TYPES -->
+
+                                <td>
+
+                                    {% if record.sample_types_json %}
+
+                                    <span
+                                        class="report-badge badge-types"
+                                        title="{{ get_sample_types_display(record.sample_types_json) }}"
+                                    >
+
+                                        {{
+                                            get_sample_types_display(
+                                                record.sample_types_json
+                                            )
+                                        }}
+
+                                    </span>
+
+                                    {% else %}
+
+                                    -
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- NOTES -->
+
+                                <td>
+
+                                    <span
+                                        class="record-notes"
+                                        title="{{ record.notes or '' }}"
+                                    >
+
+                                        {{
+                                            record.notes[:30]
+                                            if record.notes
+                                            else '-'
+                                        }}
+
+                                    </span>
+
+                                </td>
+
+
+                            </tr>
+
+
+                            {% endfor %}
+
+
+                        </tbody>
+
+
+                        <tfoot>
+
+                            <tr>
+
+                                <td colspan="8">
+
+                                    GRAND TOTAL
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    {{ total_sampling }}
+
+                                </td>
+
+                                <td colspan="2">
+
+                                </td>
+
+                            </tr>
+
+                        </tfoot>
+
+
+                    </table>
+
+
+                </div>
+
+
+                {% else %}
+
+
+                <div class="empty-records">
+
+                    <div class="empty-records-icon">
+                        📋
+                    </div>
+
+                    <h3 class="empty-records-title">
+                        No Records Found
+                    </h3>
+
+                    <p class="empty-records-text">
+                        No collection records were found for this report period.
+                    </p>
+
+                </div>
+
+
+                {% endif %}
+
+
+            </div>
+
+
+
+            <!-- =============================================
+                 SIGNATURES
+                 ============================================= -->
+
+            <div class="signature-section">
+
+
+                <!-- PREPARED BY -->
+
+                <div class="signature-block">
+
+                    <div class="signature-line">
+                    </div>
+
+                    <p class="signature-name">
+                        {{ member.full_name }}
+                    </p>
+
+                    <p class="signature-role">
+                        Prepared by
+                    </p>
+
+                </div>
+
+
+                <!-- VERIFIED BY -->
+
+                <div class="signature-block">
+
+                    <div class="signature-line">
+                    </div>
+
+                    <p class="signature-name">
+                        __________________
+                    </p>
+
+                    <p class="signature-role">
+                        Verified by
+                    </p>
+
+                </div>
+
+
+                <!-- DATE -->
+
+                <div class="signature-block">
+
+                    <div class="signature-line">
+                    </div>
+
+                    <p class="signature-name">
+                        {{ now.strftime('%Y-%m-%d %H:%M') }}
+                    </p>
+
+                    <p class="signature-role">
+                        Date
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =============================================
+                 FOOTER
+                 ============================================= -->
+
+            <footer class="report-footer">
+
+                &copy;
+                {{ today.strftime('%Y') }}
+
+                CAMMED LAB Diagnostics
+
+                —
+                All Rights Reserved
+
+            </footer>
+
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PRINT SCRIPT
+     ========================================================= -->
+
+<script>
+
+    /*
+     * Automatically focus the report page normally.
+     * No extra action is required from the user.
+     */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            document.body.classList.add(
+                "report-ready"
+            );
+
+        }
+    );
+
+
+    /*
+     * If window.close() is blocked by the browser,
+     * simply go back to the previous page.
+     */
+
+    function closeReportWindow() {
+
+        window.close();
+
+        setTimeout(
+            function () {
+
+                if (!window.closed) {
+
+                    window.history.back();
+
+                }
+
+            },
+            150
+        );
+
+    }
+
+</script>
+
+
+</body>
+
+</html>

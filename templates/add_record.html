@@ -1,0 +1,1010 @@
+{% extends "base.html" %}
+{% block title %}Add Collection Record - CMS{% endblock %}
+
+{% block content %}
+<style>
+    /* ─── OVERRIDE BOOTSTRAP WITH CUSTOM STYLING ─── */
+    :root {
+        --primary-blue: #203B79;
+        --primary-hover: #152a5a;
+        --accent-red: #ED1C24;
+        --text-muted: #6c757d;
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --border-radius: 12px;
+    }
+
+    body {
+        background: #f5f7fc;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .page-header {
+        padding: 1.5rem 0 0.5rem 0;
+    }
+
+    .page-header h3 {
+        font-weight: 800;
+        color: var(--primary-blue);
+        letter-spacing: -0.5px;
+    }
+
+    .page-header .text-muted {
+        font-weight: 400;
+        font-size: 0.95rem;
+    }
+
+    .card-custom {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: #ffffff;
+        margin-bottom: 1.75rem;
+    }
+
+    .card-custom .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1rem 1.5rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+
+    .card-custom .card-header .badge-count {
+        background: var(--primary-blue);
+        color: white;
+        border-radius: 40px;
+        padding: 0.2rem 0.9rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .card-custom .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .form-control,
+    .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: #fafbfc;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(32, 59, 121, 0.12);
+        background: #ffffff;
+    }
+
+    .form-control.field-invalid {
+        border-color: var(--accent-red) !important;
+        background: #fff5f5;
+        animation: shakeField 0.4s;
+    }
+
+    @keyframes shakeField {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-6px); }
+        40%, 80% { transform: translateX(6px); }
+    }
+
+    /* ─── VALIDATION POPUP (TOAST) ─── */
+    #formErrorOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        backdrop-filter: blur(2px);
+        z-index: 9999;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 8vh;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    #formErrorOverlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #formErrorPopup {
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 440px;
+        margin: 0 1rem;
+        overflow: hidden;
+        transform: translateY(-24px) scale(0.97);
+        opacity: 0;
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+        border-top: 5px solid #dc2626;
+    }
+
+    #formErrorOverlay.show #formErrorPopup {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    #formErrorPopup .popup-body {
+        padding: 1.5rem 1.5rem 1.25rem;
+        display: flex;
+        gap: 0.9rem;
+        align-items: flex-start;
+    }
+
+    #formErrorPopup .popup-icon {
+        font-size: 1.8rem;
+        line-height: 1;
+        flex-shrink: 0;
+        animation: popIcon 0.4s ease;
+    }
+
+    @keyframes popIcon {
+        0% { transform: scale(0.4); opacity: 0; }
+        60% { transform: scale(1.15); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+
+    #formErrorPopup .popup-title {
+        font-weight: 800;
+        color: #991b1b;
+        font-size: 1.05rem;
+        margin-bottom: 0.25rem;
+    }
+
+    #formErrorPopup .popup-text {
+        color: #4a5568;
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    #formErrorPopup .popup-footer {
+        padding: 0.85rem 1.5rem;
+        background: #fef2f2;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    #formErrorPopup .popup-close-btn {
+        background: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 0.5rem 1.4rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    #formErrorPopup .popup-close-btn:hover {
+        background: var(--primary-hover);
+    }
+
+    .input-group-lg .form-control {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .input-group .btn-outline-secondary {
+        border-color: #e2e8f0;
+        background: #f8f9fa;
+        font-weight: 700;
+        font-size: 1.3rem;
+        padding: 0 1.2rem;
+        transition: all 0.2s;
+    }
+
+    .input-group .btn-outline-secondary:hover {
+        background: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+    }
+
+    .btn-primary-custom {
+        background: var(--primary-blue);
+        border: none;
+        color: white;
+        font-weight: 700;
+        padding: 0.8rem 1.8rem;
+        border-radius: 8px;
+        transition: all 0.25s;
+        box-shadow: 0 4px 14px rgba(32, 59, 121, 0.25);
+    }
+
+    .btn-primary-custom:hover {
+        color: white;
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(32, 59, 121, 0.35);
+    }
+
+    .btn-primary-custom:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-outline-custom {
+        border: 2px solid #e2e8f0;
+        background: transparent;
+        color: #4a5568;
+        font-weight: 600;
+        padding: 0.8rem 1.8rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-outline-custom:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+    }
+
+    .specimen-type-item {
+        background: #f9fafb;
+        border: 1px solid #edf2f7;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: background 0.2s;
+    }
+
+    .specimen-type-item:hover {
+        background: #f1f4f9;
+    }
+
+    .specimen-type-item .type-name {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 0.95rem;
+    }
+
+    .specimen-type-item .type-count {
+        width: 80px;
+        text-align: center;
+        font-weight: 700;
+        border: 2px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 0.2rem 0;
+        background: white;
+    }
+
+    .specimen-type-item .type-count:focus {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(32, 59, 121, 0.12);
+    }
+
+    .summary-box {
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #edf2f7;
+        height: 100%;
+    }
+
+    .summary-box .number {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--primary-blue);
+        line-height: 1.2;
+    }
+
+    .summary-box .number.green {
+        color: #198754;
+    }
+    .summary-box .number.purple {
+        color: #6f42c1;
+    }
+    .summary-box .number.fee {
+        color: #16a085;
+    }
+    .summary-box .label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .alert-custom {
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        background: #f0f4ff;
+        color: var(--primary-blue);
+        border-left: 4px solid var(--primary-blue);
+    }
+
+    .alert-custom.warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .alert-custom.danger {
+        background: #fef2f2;
+        border-left-color: #dc2626;
+        color: #991b1b;
+    }
+
+    .time-warning {
+        background: #fef2f2;
+        border-left-color: #dc2626;
+        color: #991b1b;
+    }
+
+    @media (max-width: 768px) {
+        .specimen-type-item {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .specimen-type-item .type-count {
+            width: 100%;
+        }
+        .summary-box .number {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-xl-11 col-lg-12">
+
+            <!-- ─── HEADER ─── -->
+            <div class="page-header d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="mb-1">🧪 New Collection Record</h3>
+                    <p class="text-muted mb-0">Record daily laboratory sample collection activity with full specimen breakdown.</p>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-custom">
+                    ← Back
+                </a>
+            </div>
+
+            <!-- ─── FORM ─── -->
+            <form method="POST" id="collectionForm" novalidate>
+
+                <!-- ─── VALIDATION POPUP ─── -->
+                <div id="formErrorOverlay" role="dialog" aria-modal="true" aria-live="assertive">
+                    <div id="formErrorPopup">
+                        <div class="popup-body">
+                            <span class="popup-icon">⚠️</span>
+                            <div>
+                                <div class="popup-title" id="errorBannerTitle">Please check this form</div>
+                                <div class="popup-text" id="errorBannerText"></div>
+                            </div>
+                        </div>
+                        <div class="popup-footer">
+                            <button type="button" class="popup-close-btn" id="errorPopupClose">Got it</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collection Information -->
+                <div class="card-custom">
+                    <div class="card-header">📋 Collection Information</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">📅 Collection Date <span class="text-danger">*</span></label>
+                                <input type="date" name="collection_date" id="collection_date" class="form-control"
+                                       value="{{ request.form.get('collection_date', '') }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">📞 Sample Call Time <span class="text-danger">*</span></label>
+                                <input type="time" name="sample_call_time" id="sample_call_time" class="form-control"
+                                       value="{{ request.form.get('sample_call_time', '') }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">📥 Sample Received Time <span class="text-danger">*</span></label>
+                                <input type="time" name="sample_received_time" id="sample_received_time" class="form-control"
+                                       value="{{ request.form.get('sample_received_time', '') }}" required>
+                            </div>
+                        </div>
+                        <div id="timeWarning" class="alert alert-custom warning d-none mt-3 mb-0">
+                            ⚠️ Sample Received Time must be later than Sample Call Time.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collection Location -->
+                <div class="card-custom">
+                    <div class="card-header">🏥 Collection Location</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label class="form-label">Clinic / Hospital / Facility <span class="text-danger">*</span></label>
+                                <input type="text" name="location" id="location" class="form-control" list="facilityList"
+                                       placeholder="Enter clinic or hospital name"
+                                       value="{{ request.form.get('location', '') }}" required>
+                                <datalist id="facilityList">
+                                    <option value="Meada Clinic">
+                                    <option value="BKK Clinic">
+                                    <option value="Central Hospital">
+                                    <option value="Phnom Penh General Hospital">
+                                    <option value="Angkor Hospital">
+                                    <option value="Kandal Provincial Hospital">
+                                    <option value="Sunrise Medical Center">
+                                </datalist>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">👨‍⚕️ Requesting Doctor</label>
+                                <input type="text" name="doctor" id="doctor" class="form-control"
+                                       placeholder="Doctor name (optional)"
+                                       value="{{ request.form.get('doctor', '') }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patients / Samples -->
+                <div class="card-custom">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>👤 Patients / Samples Collected</span>
+                        <span class="badge-count" id="patientTotalDisplay">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row justify-content-center">
+                            <div class="col-md-6">
+                                <label class="form-label text-center d-block">Number of Patients / Samples <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-lg">
+                                    <button type="button" class="btn btn-outline-secondary" id="decreasePatients">−</button>
+                                    <input type="number" id="sample_count" name="sample_count"
+                                           class="form-control text-center fw-bold"
+                                           value="{{ request.form.get('sample_count', 0) }}"
+                                           min="0" max="1000" step="1" required>
+                                    <button type="button" class="btn btn-outline-secondary" id="increasePatients">+</button>
+                                </div>
+                                <div class="form-text text-center mt-2">Can be 0 if no collection occurred (requires note).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Specimens / Packs -->
+                <div class="card-custom">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>📦 Total Specimens / Packs</span>
+                        <span class="badge-count" style="background:#198754;" id="specimenTotalDisplay">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-light border mb-4">
+                            <div class="d-flex gap-3 align-items-center">
+                                <span style="font-size:1.6rem;">📌</span>
+                                <div>
+                                    <strong>Specimen counting</strong>
+                                    <p class="mb-0 mt-1 text-muted small">A patient may have more than one specimen/pack. Record the actual number collected.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col-md-6">
+                                <label class="form-label text-center d-block">Total Specimens / Packs <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-lg">
+                                    <button type="button" class="btn btn-outline-secondary" id="decreaseSpecimens">−</button>
+                                    <input type="number" id="total_specimens" name="total_specimens"
+                                           class="form-control text-center fw-bold"
+                                           value="{{ request.form.get('total_specimens', 0) }}"
+                                           min="0" max="2000" step="1" required>
+                                    <button type="button" class="btn btn-outline-secondary" id="increaseSpecimens">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Live warning: total specimens < patients -->
+                        <div id="specimenPatientWarning" class="alert alert-custom danger d-none mt-3 mb-0">
+                            ⚠️ Total Specimens ( <span id="specimenCountWarning"></span> ) is less than the number of Patients ( <span id="patientCountWarning"></span> ). Each patient must have at least one specimen.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specimen Type Details -->
+                <div class="card-custom">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>🧪 Specimen Type Details</span>
+                        <span class="badge-count" style="background:#6f42c1;" id="typeTotalDisplay">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-light border mb-4">
+                            <div class="d-flex gap-3 align-items-center">
+                                <span style="font-size:1.6rem;">ℹ️</span>
+                                <div>
+                                    <strong>Optional classification</strong>
+                                    <p class="mb-0 mt-1 text-muted small">Enter the number of specimens by type. The type total should normally match the Total Specimens / Packs above.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Standard specimen types -->
+                        <div class="row g-2">
+                            {% set sample_types = [
+                                "Blood", "Serum", "Plasma", "Urine", "Stool",
+                                "Sputum", "Swab", "Saliva", "CSF", "Pleural Fluid",
+                                "Ascitic Fluid", "Synovial Fluid", "Pericardial Fluid",
+                                "Amniotic Fluid", "Semen", "Tissue / Biopsy",
+                                "Bone Marrow", "Dried Blood Spot (DBS)",
+                                "Newborn Screening (NBS)", "Cytology",
+                                "Fine Needle Aspiration (FNA)", "Other"
+                            ] %}
+                            {% for st in sample_types %}
+                            {% set st_slug = st|lower|replace(' / ', '_')|replace(' ', '_')|replace('(', '')|replace(')', '') %}
+                            <div class="col-xl-3 col-md-4 col-sm-6">
+                                <div class="specimen-type-item">
+                                    <span class="type-name" id="label_{{ st_slug }}">{{ st }}</span>
+                                    <input type="number" id="sample_{{ st_slug }}" name="sample_{{ st }}"
+                                           class="type-count specimen-type-count"
+                                           aria-labelledby="label_{{ st_slug }}"
+                                           value="{{ request.form.get('sample_' ~ st, 0) }}"
+                                           min="0" max="2000" step="1">
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Type total summary & mismatch warning -->
+                        <div class="mt-4 p-3 rounded border bg-white d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Total From Specimen Types</span>
+                            <span id="typeTotalBottom" class="fw-bold" style="color:#6f42c1; font-size:1.4rem;">0</span>
+                        </div>
+                        <div id="specimenMismatch" class="alert alert-custom warning d-none mt-3 mb-0">
+                            ⚠️ The Total Specimens / Packs does not match the sum of the specimen types.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fees & Expenses -->
+                <div class="card-custom">
+                    <div class="card-header">💰 Fees & Expenses</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">🛵 Moto Shipping Fee (Parking) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" name="moto_fee" id="moto_fee" class="form-control"
+                                           value="{{ request.form.get('moto_fee', 1000) }}" min="0" step="100" required>
+                                    <span class="input-group-text">Riel</span>
+                                </div>
+                                <div class="form-text">Standard parking fee when collecting samples.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">🚗 Far Away Fee <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" name="far_away_fee" id="far_away_fee" class="form-control"
+                                           value="{{ request.form.get('far_away_fee', 5000) }}" min="0" step="100" required>
+                                    <span class="input-group-text">Riel</span>
+                                </div>
+                                <div class="form-text">Extra fee for distant collection locations.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collection Summary -->
+                <div class="card-custom">
+                    <div class="card-header">📊 Collection Summary</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="summary-box">
+                                    <div class="number" id="summaryPatients">0</div>
+                                    <div class="label">Patients</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="summary-box">
+                                    <div class="number green" id="summarySpecimens">0</div>
+                                    <div class="label">Specimens</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="summary-box">
+                                    <div class="number purple" id="summaryAverage">0.00</div>
+                                    <div class="label">Spec/Patient</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="summary-box" style="border-color: #16a085;">
+                                    <div class="number fee" id="summaryTotalFees">0</div>
+                                    <div class="label">Total Fees (Riel)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="card-custom">
+                    <div class="card-header">📝 Collection Notes</div>
+                    <div class="card-body">
+                        <label class="form-label">Remarks / Notes <span id="notesRequiredIndicator" class="text-danger d-none">*</span></label>
+                        <textarea name="notes" id="collection_notes" class="form-control" rows="4" maxlength="1000"
+                                  placeholder="Optional notes about the collection...">{{ request.form.get('notes', '') }}</textarea>
+                        <div id="notesHelp" class="form-text">Example: delayed collection, additional pickup, missing specimen, clinic closed, or other collection information.</div>
+                    </div>
+                </div>
+
+                <!-- Validation Notice -->
+                <div class="alert alert-custom mb-4">
+                    <div class="d-flex gap-3 align-items-center">
+                        <span style="font-size:1.6rem;">💡</span>
+                        <div>
+                            <strong>Before saving</strong>
+                            <ul class="mb-0 mt-1">
+                                <li>Verify the collection date and times.</li>
+                                <li>Confirm the clinic / hospital.</li>
+                                <li>Check the number of patients / samples.</li>
+                                <li>Check the total specimens / packs.</li>
+                                <li>Confirm specimen type quantities.</li>
+                                <li>Review moto and far away fees.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="card-custom">
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <button type="submit" id="saveButton" class="btn btn-primary-custom w-100">
+                                    💾 Save Collection Record
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-custom w-100">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- ─── JAVASCRIPT (AJAX – NEVER STUCK) ─── -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ── Elements ──
+    const patientInput = document.getElementById("sample_count");
+    const specimenInput = document.getElementById("total_specimens");
+    const motoFeeInput = document.getElementById("moto_fee");
+    const farAwayFeeInput = document.getElementById("far_away_fee");
+    const patientTotalDisplay = document.getElementById("patientTotalDisplay");
+    const specimenTotalDisplay = document.getElementById("specimenTotalDisplay");
+    const typeTotalDisplay = document.getElementById("typeTotalDisplay");
+    const typeTotalBottom = document.getElementById("typeTotalBottom");
+    const summaryPatients = document.getElementById("summaryPatients");
+    const summarySpecimens = document.getElementById("summarySpecimens");
+    const summaryAverage = document.getElementById("summaryAverage");
+    const summaryTotalFees = document.getElementById("summaryTotalFees");
+    const mismatchWarning = document.getElementById("specimenMismatch");
+    const specimenPatientWarning = document.getElementById("specimenPatientWarning");
+    const specimenCountWarning = document.getElementById("specimenCountWarning");
+    const patientCountWarning = document.getElementById("patientCountWarning");
+    const typeInputs = document.querySelectorAll(".specimen-type-count");
+    const collectionDate = document.getElementById("collection_date");
+    const callTime = document.getElementById("sample_call_time");
+    const receivedTime = document.getElementById("sample_received_time");
+    const locationInput = document.getElementById("location");
+    const timeWarning = document.getElementById("timeWarning");
+    const form = document.getElementById("collectionForm");
+    const notesInput = document.getElementById("collection_notes");
+    const notesRequiredIndicator = document.getElementById("notesRequiredIndicator");
+    const notesHelp = document.getElementById("notesHelp");
+    const saveButton = document.getElementById("saveButton");
+
+    // Error Popup
+    const errorOverlay = document.getElementById("formErrorOverlay");
+    const errorBannerText = document.getElementById("errorBannerText");
+    const errorPopupClose = document.getElementById("errorPopupClose");
+
+    // ── Helpers ──
+    function getNumber(input) {
+        let val = parseInt(input.value);
+        return isNaN(val) || val < 0 ? 0 : val;
+    }
+
+    function clearFieldFlags() {
+        [collectionDate, callTime, receivedTime, locationInput].forEach(el => el.classList.remove("field-invalid"));
+    }
+
+    function showError(message, invalidField) {
+        errorBannerText.textContent = message;
+        errorOverlay.classList.add("show");
+        if (invalidField) {
+            invalidField.classList.add("field-invalid");
+        }
+        console.error("Validation error:", message);
+    }
+
+    function hideError() {
+        errorOverlay.classList.remove("show");
+        errorBannerText.textContent = "";
+    }
+
+    function closePopupAndFocus() {
+        hideError();
+        const firstInvalid = document.querySelector(".field-invalid");
+        if (firstInvalid) firstInvalid.focus();
+    }
+
+    errorPopupClose.addEventListener("click", closePopupAndFocus);
+    errorOverlay.addEventListener("click", function(e) {
+        if (e.target === errorOverlay) closePopupAndFocus();
+    });
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && errorOverlay.classList.contains("show")) closePopupAndFocus();
+    });
+
+    // ── Update functions ──
+    function updatePatients() {
+        let val = getNumber(patientInput);
+        if (val > 1000) { val = 1000; patientInput.value = 1000; }
+        patientTotalDisplay.textContent = val;
+        summaryPatients.textContent = val;
+        updateAverage();
+        updateNotesRequirement();
+    }
+
+    function updateSpecimens() {
+        let val = getNumber(specimenInput);
+        if (val > 2000) { val = 2000; specimenInput.value = 2000; }
+        specimenTotalDisplay.textContent = val;
+        summarySpecimens.textContent = val;
+        updateAverage();
+        checkTypeTotal();
+        checkPatientSpecimenRelation();
+        updateNotesRequirement();
+    }
+
+    function updateTypeTotal() {
+        let total = 0;
+        typeInputs.forEach(inp => {
+            let v = getNumber(inp);
+            if (v > 2000) { v = 2000; inp.value = 2000; }
+            total += v;
+        });
+        typeTotalDisplay.textContent = total;
+        typeTotalBottom.textContent = total;
+        checkTypeTotal();
+    }
+
+    function checkTypeTotal() {
+        const totalSpecimens = getNumber(specimenInput);
+        let typeTotal = 0;
+        typeInputs.forEach(inp => typeTotal += getNumber(inp));
+        if (totalSpecimens !== typeTotal && !(totalSpecimens === 0 && typeTotal === 0)) {
+            mismatchWarning.classList.remove("d-none");
+        } else {
+            mismatchWarning.classList.add("d-none");
+        }
+    }
+
+    function checkPatientSpecimenRelation() {
+        const patients = getNumber(patientInput);
+        const specimens = getNumber(specimenInput);
+        if (patients > 0 && specimens < patients) {
+            specimenCountWarning.textContent = specimens;
+            patientCountWarning.textContent = patients;
+            specimenPatientWarning.classList.remove("d-none");
+        } else {
+            specimenPatientWarning.classList.add("d-none");
+        }
+    }
+
+    function updateAverage() {
+        const patients = getNumber(patientInput);
+        const specimens = getNumber(specimenInput);
+        if (patients > 0) {
+            summaryAverage.textContent = (specimens / patients).toFixed(2);
+        } else {
+            summaryAverage.textContent = "0.00";
+        }
+    }
+
+    function updateTotalFees() {
+        const moto = getNumber(motoFeeInput);
+        const far = getNumber(farAwayFeeInput);
+        summaryTotalFees.textContent = moto + far;
+    }
+
+    function updateNotesRequirement() {
+        const patients = getNumber(patientInput);
+        const specimens = getNumber(specimenInput);
+        if (patients === 0 && specimens === 0) {
+            notesRequiredIndicator.classList.remove("d-none");
+            notesHelp.textContent = "Please provide a reason why no collection occurred (required).";
+        } else {
+            notesRequiredIndicator.classList.add("d-none");
+            notesHelp.textContent = "Example: delayed collection, additional pickup, missing specimen, clinic closed, or other collection information.";
+        }
+    }
+
+    function updateAll() {
+        updatePatients();
+        updateSpecimens();
+        updateTypeTotal();
+        updateTotalFees();
+    }
+
+    // ── Event Listeners ──
+    document.getElementById("decreasePatients").addEventListener("click", function() {
+        let v = getNumber(patientInput);
+        if (v > 0) v--;
+        patientInput.value = v;
+        updateAll();
+    });
+    document.getElementById("increasePatients").addEventListener("click", function() {
+        let v = getNumber(patientInput);
+        if (v < 1000) v++;
+        patientInput.value = v;
+        updateAll();
+    });
+    document.getElementById("decreaseSpecimens").addEventListener("click", function() {
+        let v = getNumber(specimenInput);
+        if (v > 0) v--;
+        specimenInput.value = v;
+        updateAll();
+    });
+    document.getElementById("increaseSpecimens").addEventListener("click", function() {
+        let v = getNumber(specimenInput);
+        if (v < 2000) v++;
+        specimenInput.value = v;
+        updateAll();
+    });
+
+    patientInput.addEventListener("input", updateAll);
+    specimenInput.addEventListener("input", updateAll);
+    motoFeeInput.addEventListener("input", updateTotalFees);
+    farAwayFeeInput.addEventListener("input", updateTotalFees);
+    typeInputs.forEach(inp => {
+        inp.addEventListener("input", updateAll);
+        inp.addEventListener("change", updateAll);
+    });
+
+    // ── Time validation ──
+    function validateTimes() {
+        if (!callTime.value || !receivedTime.value) {
+            timeWarning.classList.add("d-none");
+            return true;
+        }
+        if (receivedTime.value <= callTime.value) {
+            timeWarning.classList.remove("d-none");
+            return false;
+        }
+        timeWarning.classList.add("d-none");
+        return true;
+    }
+    callTime.addEventListener("change", validateTimes);
+    receivedTime.addEventListener("change", validateTimes);
+
+    // ── Form Submit ──
+    form.addEventListener("submit", function(e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+
+        if (typeof hideLoading === 'function') hideLoading();
+        hideError();
+        clearFieldFlags();
+
+        // Required fields
+        if (!collectionDate.value) {
+            showError("Please select the Collection Date.", collectionDate);
+            return;
+        }
+        if (!callTime.value) {
+            showError("Please enter the Sample Call Time.", callTime);
+            return;
+        }
+        if (!receivedTime.value) {
+            showError("Please enter the Sample Received Time.", receivedTime);
+            return;
+        }
+        if (!locationInput.value.trim()) {
+            showError("Please enter the Clinic / Hospital / Facility.", locationInput);
+            return;
+        }
+        if (!validateTimes()) {
+            showError("Sample Received Time must be later than Sample Call Time.", receivedTime);
+            return;
+        }
+
+        const patients = getNumber(patientInput);
+        const specimens = getNumber(specimenInput);
+        const bothZero = patients === 0 && specimens === 0;
+        const exactlyOneZero = (patients === 0) !== (specimens === 0);
+
+        if (bothZero) {
+            if (notesInput.value.trim() === "") {
+                showError("Patients and Total Specimens are both 0 — please explain why in the Notes field.", notesInput);
+                return;
+            }
+        } else if (exactlyOneZero) {
+            const emptyField = patients === 0 ? patientInput : specimenInput;
+            showError("Please enter both Number of Patients and Total Specimens, or leave both at 0 and explain why in the Notes field.", emptyField);
+            return;
+        } else if (specimens < patients) {
+            showError(`Total specimens (${specimens}) cannot be less than the number of patients (${patients}).`, specimenInput);
+            return;
+        }
+
+        let typeTotal = 0;
+        typeInputs.forEach(inp => typeTotal += getNumber(inp));
+        if (typeTotal > 0 && typeTotal !== specimens) {
+            showError(`The specimen type total (${typeTotal}) does not match the total specimens (${specimens}).`);
+            return;
+        }
+
+        // Submit
+        saveButton.disabled = true;
+        saveButton.textContent = "Saving...";
+
+        const safetyTimer = setTimeout(function() {
+            saveButton.disabled = false;
+            saveButton.textContent = "💾 Save Collection Record";
+            if (typeof hideLoading === 'function') hideLoading();
+            showError("Request took too long. Please try again.");
+        }, 5000);
+
+        const formData = new FormData(form);
+        fetch(window.location.href, { method: 'POST', body: formData })
+        .then(response => {
+            clearTimeout(safetyTimer);
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+            if (!response.ok) throw new Error(`Server error (${response.status})`);
+            return response.text();
+        })
+        .then(html => {
+            if (html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const flashAlerts = doc.querySelectorAll('.alert-danger, .alert-warning');
+                let errorMsg = null;
+                flashAlerts.forEach(alert => {
+                    const text = alert.textContent.trim();
+                    if (text) { errorMsg = text; return false; }
+                });
+                if (errorMsg) showError(errorMsg);
+                else showError("There was a problem saving the record. Please check the form.");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                saveButton.disabled = false;
+                saveButton.textContent = "💾 Save Collection Record";
+                if (typeof hideLoading === 'function') hideLoading();
+            }
+        })
+        .catch(error => {
+            clearTimeout(safetyTimer);
+            console.error('Fetch error:', error);
+            showError("A network error occurred. Please check your connection and try again.");
+            saveButton.disabled = false;
+            saveButton.textContent = "💾 Save Collection Record";
+            if (typeof hideLoading === 'function') hideLoading();
+        });
+    });
+
+    // ── Initial update ──
+    updateAll();
+});
+</script>
+{% endblock %}

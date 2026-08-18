@@ -1,0 +1,1504 @@
+{% extends "base.html" %}
+{% block title %}Fee Input - Add Record{% endblock %}
+
+{% block content %}
+<style>
+    /* ─── design tokens ─── */
+    :root {
+        --primary: #1a3a5c;
+        --primary-light: #2b5d8d;
+        --primary-dark: #0f2a44;
+        --primary-gradient: linear-gradient(135deg, #1a3a5c 0%, #2b5d8d 100%);
+        --secondary: #e8f0fe;
+        --bg-body: #f0f4fa;
+        --card-shadow: 0 8px 30px rgba(26, 58, 92, 0.08);
+        --radius: 14px;
+        --radius-sm: 8px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+        background: var(--bg-body);
+        font-family: var(--font-sans);
+        color: var(--primary);
+    }
+
+    .fee-input-wrapper {
+        padding-top: 20px;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: var(--card-shadow);
+        padding: 28px 32px;
+        border: 1px solid rgba(26,58,92,0.06);
+        margin-bottom: 24px;
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+    }
+    .card-header h2 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--primary);
+    }
+    .card-header .badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 20px;
+        background: var(--secondary);
+        color: var(--primary-light);
+    }
+    .form-group {
+        margin-bottom: 18px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+    .form-group label .required { color: #dc3545; margin-left: 2px; }
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: var(--radius-sm);
+        font-size: 0.9rem;
+        background: #fafcff;
+        transition: var(--transition);
+        outline: none;
+        color: var(--primary);
+    }
+    .form-control:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(43,93,141,0.10);
+        background: #fff;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 18px;
+        border-top: 2px solid #f1f5f9;
+        flex-wrap: wrap;
+    }
+    .btn {
+        padding: 10px 28px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: #fff;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(26,58,92,0.25);
+    }
+    .btn-secondary {
+        background: #f1f4f9;
+        color: #4a5a6e;
+    }
+    .btn-secondary:hover {
+        background: #e2e8f0;
+    }
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--primary-light);
+        color: var(--primary-light);
+    }
+    .btn-outline:hover {
+        background: var(--primary-light);
+        color: #fff;
+    }
+    .btn-danger {
+        background: #dc3545;
+        color: #fff;
+    }
+    .btn-danger:hover {
+        background: #c82333;
+    }
+    .btn-sm {
+        padding: 6px 14px;
+        font-size: 0.75rem;
+        border-radius: 20px;
+    }
+    .btn-info {
+        background: #17a2b8;
+        color: #fff;
+    }
+    .btn-info:hover {
+        background: #138496;
+        transform: translateY(-1px);
+    }
+    .btn-success {
+        background: #28a745;
+        color: #fff;
+    }
+    .btn-success:hover {
+        background: #218838;
+    }
+    .btn-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+    .btn-warning:hover {
+        background: #e0a800;
+    }
+    .alert {
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 18px;
+        font-weight: 500;
+    }
+    .alert-success { background: #ddf4e6; color: #0e6b3a; }
+    .alert-danger { background: #fce8ec; color: #a82a3a; }
+    .alert-warning { background: #fff3d6; color: #8a6d0b; }
+    .hint {
+        font-size: 0.75rem;
+        color: #8a9aa8;
+        margin-top: 3px;
+    }
+
+    /* ─── Table ─── */
+    .table-responsive {
+        overflow-x: auto;
+        margin: 0 -4px;
+    }
+    .table {
+        width: 100%;
+        font-size: 0.85rem;
+        border-collapse: collapse;
+        min-width: 700px;
+    }
+    .table thead th {
+        background: #f1f6fc;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 12px 14px;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    .table tbody td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .table tbody tr:hover {
+        background: #f6faff;
+    }
+    .table tfoot td {
+        background: #f1f6fc;
+        font-weight: 700;
+        padding: 12px 14px;
+        border-top: 2px solid #e2e8f0;
+    }
+    .table .text-end { text-align: right; }
+    .table .text-center { text-align: center; }
+    .badge {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .badge-secondary { background: #edf1f5; color: #4a5a6e; }
+    .badge-teal { background: #d4f5f0; color: #007a6b; }
+    .badge-primary { background: var(--primary-gradient); color: #fff; }
+    .badge-success { background: #ddf4e6; color: #0e6b3a; }
+
+    .empty-state {
+        text-align: center;
+        padding: 30px 20px;
+        color: #8a9aa8;
+    }
+    .empty-state .empty-icon { font-size: 2.4rem; display: block; margin-bottom: 8px; opacity: 0.6; }
+
+    .action-group {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+    }
+    .action-group .btn-sm {
+        padding: 5px 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border-radius: 20px;
+        letter-spacing: 0.3px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .action-group .btn-sm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+    }
+
+    /* ─── Custom Modals ─── */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(11, 26, 43, 0.50);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: overlayFade 0.25s ease;
+    }
+    .modal-overlay.active { display: flex; }
+    @keyframes overlayFade {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-box {
+        background: #fff;
+        border-radius: var(--radius);
+        max-width: 560px;
+        width: 100%;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.25);
+        animation: modalSlide 0.25s ease;
+        overflow: hidden;
+    }
+    .modal-box.edit-box {
+        max-width: 520px;
+    }
+    .modal-box.delete-box {
+        max-width: 480px;
+    }
+    .modal-box.view-box {
+        max-width: 800px;
+    }
+    @keyframes modalSlide {
+        from { opacity: 0; transform: translateY(-20px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-header {
+        padding: 18px 24px;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        background: #f8fafc;
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .modal-header .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        cursor: pointer;
+        color: #8a9aa8;
+        transition: var(--transition);
+        line-height: 1;
+        padding: 0 4px;
+    }
+    .modal-header .close-modal:hover {
+        color: var(--primary);
+        transform: rotate(90deg);
+    }
+
+    .modal-body {
+        padding: 20px 24px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .modal-body .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .modal-footer {
+        padding: 12px 24px;
+        border-top: 1px solid #f1f5f9;
+        text-align: right;
+        flex-shrink: 0;
+        background: #fafcff;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* ─── DELETE MODAL – CENTERING FIX ─── */
+    .modal-box.delete-box {
+        padding: 24px 24px 28px 24px;
+        text-align: center;
+    }
+    .modal-box.delete-box .modal-icon {
+        font-size: 2.8rem;
+        margin-bottom: 8px;
+    }
+    .modal-box.delete-box h4 {
+        margin: 0 0 8px;
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+    .modal-box.delete-box p {
+        color: #4a5a6e;
+        font-size: 0.9rem;
+        margin: 0 auto 24px auto;
+        line-height: 1.5;
+        max-width: 380px;
+    }
+    .modal-box.delete-box .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+    .modal-box.delete-box .modal-actions .btn {
+        flex: 0 0 130px;
+        justify-content: center;
+        text-align: center;
+        padding: 10px 16px;
+    }
+
+    /* View modal inner table */
+    .modal-body .inner-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+    .modal-body .inner-table th {
+        background: #f1f6fc;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 8px 12px;
+        border-bottom: 2px solid #e2e8f0;
+        text-align: left;
+    }
+    .modal-body .inner-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .modal-body .inner-table tr:last-child td { border-bottom: none; }
+
+    @media (max-width: 768px) {
+        .fee-input-wrapper { padding-top: 10px; }
+        .card { padding: 20px; }
+        .form-row { grid-template-columns: 1fr; }
+        .form-actions { flex-direction: column; align-items: stretch; }
+        .form-actions .btn { justify-content: center; }
+        .table { font-size: 0.75rem; min-width: 600px; }
+        .table thead th, .table tbody td { padding: 8px 10px; }
+        .card-header { flex-direction: column; align-items: stretch; }
+        .card-header a { align-self: flex-start; }
+        .action-group { flex-direction: column; align-items: stretch; }
+        .action-group .btn-sm { justify-content: center; }
+        .modal-box { margin: 10px; }
+        .modal-body { padding: 16px; }
+        .modal-body .inner-table { font-size: 0.75rem; }
+        .modal-box.delete-box .modal-actions .btn {
+            flex: 0 0 120px;
+        }
+    }
+    @media (max-width: 480px) {
+        .table { font-size: 0.7rem; min-width: 500px; }
+        .table thead th, .table tbody td { padding: 6px 8px; }
+        .action-group .btn-sm { font-size: 0.65rem; padding: 4px 10px; }
+        .modal-box.delete-box .modal-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .modal-box.delete-box .modal-actions .btn {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
+<!-- ─── WRAPPER WITH TOP PADDING ─── -->
+<div class="container fee-input-wrapper">
+    <!-- ─── FORM CARD ─── -->
+    <div class="card">
+        <div class="card-header">
+            <h2>💰 Fee Input <span class="badge">New Entry</span></h2>
+            <a href="{{ url_for('report') }}" class="btn btn-secondary" style="padding:6px 16px;font-size:0.8rem;">← Report</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('fee_input') }}">
+            <div class="form-group">
+                <label>📅 Collection Date <span class="required">*</span></label>
+                <input type="date" name="collection_date" class="form-control" value="{{ today.strftime('%Y-%m-%d') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>🏥 Clinic / Hospital <span class="required">*</span></label>
+                <input type="text" name="location" class="form-control" placeholder="e.g. Kampong Speu Hospital" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🛵 Moto Fee <span class="hint">(KHR)</span></label>
+                    <input type="number" name="moto_fee" class="form-control" value="1000" min="0" step="100">
+                </div>
+                <div class="form-group">
+                    <label>🚗 Far Away Fee <span class="hint">(KHR)</span></label>
+                    <input type="number" name="far_away_fee" class="form-control" value="5000" min="0" step="100">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>📝 Notes</label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Any remarks…"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">💾 Save Record</button>
+                <a href="{{ url_for('report') }}" class="btn btn-secondary">↩ Back to Report</a>
+                <button type="reset" class="btn btn-outline">🔄 Clear</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ─── GROUPED RECENT RECORDS CARD ─── -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📋 Recent Records <span class="badge">{{ grouped|length }} groups</span></h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <span style="font-size:0.8rem;color:#8a9aa8;">Last 30 records</span>
+
+                <label for="qrUploadInput" class="btn btn-secondary btn-sm" style="cursor:pointer;margin-bottom:0;">
+                    <span id="qrUploadLabel">📎 Attach QR</span>
+                </label>
+                <input type="file" id="qrUploadInput" accept="image/*" style="display:none;">
+                <img id="qrPreviewThumb" src="" alt="QR preview" style="display:none;width:30px;height:30px;border-radius:6px;object-fit:cover;border:1.5px solid #e2e8f0;">
+                <button type="button" id="qrRemoveBtn" class="btn btn-danger btn-sm" style="display:none;padding:5px 10px;font-size:0.7rem;" title="Remove QR code">✕</button>
+
+                <button class="btn btn-info btn-sm" onclick="printFeeRecords('moto')">🛵 Print Moto Fee</button>
+                <button class="btn btn-warning btn-sm" onclick="printFeeRecords('far')">🚗 Print Far Fee</button>
+            </div>
+        </div>
+        <p class="hint" style="margin:-8px 0 4px;">Upload a QR code once and it will appear on both printed fee reports.</p>
+
+        {% if grouped %}
+        <div class="table-responsive">
+            <table class="table table-striped fee-detail-table" id="feeTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th class="text-center">Times</th>
+                        <th class="text-end">Moto Fee</th>
+                        <th class="text-end">Far Fee</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in grouped %}
+                    <tr class="group-row" data-group="{{ loop.index0 }}" data-key="{{ g.date.strftime('%Y-%m-%d') }}|{{ g.location }}">
+                        <td>{{ loop.index }}</td>
+                        <td class="date-display-{{ loop.index0 }}"><span class="badge badge-secondary">{{ g.date.strftime('%Y-%m-%d') }}</span></td>
+                        <td class="location-display-{{ loop.index0 }}"><strong>{{ g.location }}</strong></td>
+                        <td class="text-center"><span class="badge badge-primary">{{ g.count }}</span></td>
+                        <td class="text-end moto-display-{{ loop.index0 }}"><span class="badge badge-teal">{{ g.moto_fee }}</span></td>
+                        <td class="text-end far-display-{{ loop.index0 }}"><span class="badge badge-teal">{{ g.far_away_fee }}</span></td>
+                        <td class="text-end"><span class="badge badge-success">{{ g.moto_fee + g.far_away_fee }}</span></td>
+                        <td class="text-center">
+                            <div class="action-group">
+                                <button class="btn btn-info btn-sm view-trigger"
+                                        data-group="{{ loop.index0 }}"
+                                        data-key="{{ g.date.strftime('%Y-%m-%d') }}|{{ g.location }}">
+                                    <span class="icon">👁</span> View
+                                </button>
+                                <button class="btn btn-warning btn-sm edit-trigger"
+                                        data-group="{{ loop.index0 }}"
+                                        data-key="{{ g.date.strftime('%Y-%m-%d') }}|{{ g.location }}"
+                                        data-date="{{ g.date.strftime('%Y-%m-%d') }}"
+                                        data-location="{{ g.location }}"
+                                        data-moto="{{ g.moto_fee }}"
+                                        data-far="{{ g.far_away_fee }}">
+                                    <span class="icon">✎</span> Edit
+                                </button>
+                                <button class="btn btn-danger btn-sm delete-trigger"
+                                        data-group="{{ loop.index0 }}"
+                                        data-key="{{ g.date.strftime('%Y-%m-%d') }}|{{ g.location }}"
+                                        data-count="{{ g.count }}"
+                                        data-location="{{ g.location }}"
+                                        data-date="{{ g.date.strftime('%Y-%m-%d') }}">
+                                    <span class="icon">🗑</span> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Totals</strong></td>
+                        <td class="text-center"><strong>{{ grouped|sum(attribute='count') }}</strong></td>
+                        <td class="text-end"><strong>{{ total_moto }}</strong></td>
+                        <td class="text-end"><strong>{{ total_far }}</strong></td>
+                        <td class="text-end"><strong>{{ total_moto + total_far }}</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📭</span>
+            <p>No fee records found. Add your first one above!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ─── VIEW MODAL ─── -->
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-box view-box">
+        <div class="modal-header">
+            <h3>📄 Individual Records</h3>
+            <button class="close-modal" id="closeViewModal">&times;</button>
+        </div>
+        <div class="modal-body" id="viewModalBody"></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="closeViewModalBtn">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── EDIT MODAL ─── -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box edit-box">
+        <div class="modal-header">
+            <h3>✎ Edit Group</h3>
+            <button class="close-modal" id="closeEditModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editForm">
+                <input type="hidden" id="editGroupKey" value="">
+                <div class="form-group">
+                    <label for="editDate">📅 Collection Date</label>
+                    <input type="date" id="editDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="editLocation">🏥 Location</label>
+                    <input type="text" id="editLocation" class="form-control" placeholder="Clinic / Hospital">
+                </div>
+                <div class="form-group">
+                    <label for="editMoto">🛵 Moto Fee (KHR)</label>
+                    <input type="number" id="editMoto" class="form-control" min="0" step="100">
+                </div>
+                <div class="form-group">
+                    <label for="editFar">🚗 Far Away Fee (KHR)</label>
+                    <input type="number" id="editFar" class="form-control" min="0" step="100">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+            <button class="btn btn-success" id="saveEditBtn">💾 Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── DELETE MODAL ─── -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box delete-box">
+        <div class="modal-icon">⚠️</div>
+        <h4>Confirm Deletion</h4>
+        <p id="deleteMessage">Are you sure you want to delete all records in this group?</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+            <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Delete</a>
+        </div>
+    </div>
+</div>
+
+<!-- ─── HIDDEN MEMBER NAME FOR PRINT ─── -->
+<span id="memberName" style="display:none;">{{ session.get('full_name', 'User') }}</span>
+
+<script>
+    // Holds the uploaded QR code as a base64 data URL so it can be embedded
+    // directly into the print popup window (a separate document/context).
+    let qrCodeDataUrl = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ─── QR Code Attachment ───
+        const qrInput = document.getElementById('qrUploadInput');
+        const qrThumb = document.getElementById('qrPreviewThumb');
+        const qrRemoveBtn = document.getElementById('qrRemoveBtn');
+        const qrUploadLabel = document.getElementById('qrUploadLabel');
+
+        qrInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file (PNG, JPG, etc.).');
+                qrInput.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                qrCodeDataUrl = ev.target.result;
+                qrThumb.src = qrCodeDataUrl;
+                qrThumb.style.display = 'inline-block';
+                qrRemoveBtn.style.display = 'inline-flex';
+                qrUploadLabel.textContent = '✅ QR Attached';
+            };
+            reader.onerror = function() {
+                alert('Could not read that image. Please try another file.');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        qrRemoveBtn.addEventListener('click', function() {
+            qrCodeDataUrl = null;
+            qrInput.value = '';
+            qrThumb.style.display = 'none';
+            qrThumb.src = '';
+            qrRemoveBtn.style.display = 'none';
+            qrUploadLabel.textContent = '📎 Attach QR';
+        });
+
+        // ─── View Modal ───
+        document.querySelectorAll('.view-trigger').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const groupKey = this.dataset.key;
+                fetch('/get_group_records/' + encodeURIComponent(groupKey))
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const row = this.closest('tr');
+                            const date = row.querySelector('td:nth-child(2) .badge').textContent;
+                            const location = row.querySelector('td:nth-child(3) strong').textContent;
+                            renderViewModal(data.records, date, location);
+                        } else {
+                            alert('Error fetching records');
+                        }
+                    })
+                    .catch(err => alert('Network error: ' + err));
+            });
+        });
+
+        function renderViewModal(records, date, location) {
+            const body = document.getElementById('viewModalBody');
+            if (!records || records.length === 0) {
+                body.innerHTML = `<p style="text-align:center;color:#8a9aa8;">No records found.</p>`;
+            } else {
+                let rows = '';
+                records.forEach((r, i) => {
+                    rows += `<tr>
+                        <td>${i + 1}</td>
+                        <td><span class="badge badge-secondary">${r.date}</span></td>
+                        <td>${r.location || '-'}</td>
+                        <td class="text-end">${r.moto_fee || 0}</td>
+                        <td class="text-end">${r.far_away_fee || 0}</td>
+                        <td>${r.notes || '-'}</td>
+                    </tr>`;
+                });
+                body.innerHTML = `
+                    <div style="margin-bottom:12px;font-weight:600;color:var(--primary);">
+                        📅 ${date} &nbsp;|&nbsp; 🏥 ${location} &nbsp;|&nbsp; ${records.length} records
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="inner-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th class="text-end">Moto</th>
+                                    <th class="text-end">Far</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                            <tfoot>
+                                <tr style="background:#f1f6fc;font-weight:700;">
+                                    <td colspan="3" class="text-end">Totals</td>
+                                    <td class="text-end">${records.reduce((s,r) => s + (r.moto_fee || 0), 0)}</td>
+                                    <td class="text-end">${records.reduce((s,r) => s + (r.far_away_fee || 0), 0)}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+            }
+            document.getElementById('viewModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        document.getElementById('closeViewModal').addEventListener('click', closeViewModal);
+        document.getElementById('closeViewModalBtn').addEventListener('click', closeViewModal);
+        document.getElementById('viewModal').addEventListener('click', function(e) {
+            if (e.target === this) closeViewModal();
+        });
+
+        // ─── Edit Modal ───
+        const editModal = document.getElementById('editModal');
+        const editDate = document.getElementById('editDate');
+        const editLocation = document.getElementById('editLocation');
+        const editMoto = document.getElementById('editMoto');
+        const editFar = document.getElementById('editFar');
+        const editGroupKey = document.getElementById('editGroupKey');
+        let currentEditGroupIdx = null;
+
+        document.querySelectorAll('.edit-trigger').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const groupIdx = this.dataset.group;
+                const key = this.dataset.key;
+                const date = this.dataset.date;
+                const loc = this.dataset.location;
+                const moto = this.dataset.moto;
+                const far = this.dataset.far;
+
+                currentEditGroupIdx = groupIdx;
+                editGroupKey.value = key;
+                editDate.value = date;
+                editLocation.value = loc;
+                editMoto.value = moto;
+                editFar.value = far;
+
+                editModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => editDate.focus(), 100);
+            });
+        });
+
+        function closeEditModal() {
+            editModal.classList.remove('active');
+            document.body.style.overflow = '';
+            currentEditGroupIdx = null;
+        }
+        document.getElementById('closeEditModal').addEventListener('click', closeEditModal);
+        document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+        editModal.addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
+
+        // Save edit
+        document.getElementById('saveEditBtn').addEventListener('click', function() {
+            const groupKey = editGroupKey.value;
+            const newDate = editDate.value;
+            const location = editLocation.value.trim();
+            const moto = parseInt(editMoto.value) || 0;
+            const far = parseInt(editFar.value) || 0;
+
+            if (!newDate) {
+                alert('Date is required.');
+                return;
+            }
+            if (!location) {
+                alert('Location is required.');
+                return;
+            }
+
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Saving...';
+            btn.disabled = true;
+
+            fetch('/update_group/' + encodeURIComponent(groupKey), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date: newDate, moto: moto, far: far, location: location })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the row in the table
+                    const groupIdx = currentEditGroupIdx;
+                    const dateDisplay = document.querySelector('.date-display-' + groupIdx + ' .badge');
+                    if (dateDisplay) dateDisplay.textContent = newDate;
+                    const locationDisplay = document.querySelector('.location-display-' + groupIdx + ' strong');
+                    if (locationDisplay) locationDisplay.textContent = location;
+                    const motoBadge = document.querySelector('.moto-display-' + groupIdx + ' .badge');
+                    if (motoBadge) motoBadge.textContent = moto;
+                    const farBadge = document.querySelector('.far-display-' + groupIdx + ' .badge');
+                    if (farBadge) farBadge.textContent = far;
+                    const totalCell = document.querySelector('.group-row[data-group="' + groupIdx + '"] td:nth-child(7) .badge');
+                    if (totalCell) totalCell.textContent = moto + far;
+
+                    // Update footer totals
+                    const footerMoto = document.querySelector('tfoot td:nth-child(5) strong');
+                    const footerFar = document.querySelector('tfoot td:nth-child(6) strong');
+                    const footerTotal = document.querySelector('tfoot td:nth-child(7) strong');
+                    if (footerMoto && footerFar && footerTotal) {
+                        let totalMoto = 0, totalFar = 0;
+                        document.querySelectorAll('.moto-display-\\d+ .badge').forEach(b => {
+                            totalMoto += parseInt(b.textContent) || 0;
+                        });
+                        document.querySelectorAll('.far-display-\\d+ .badge').forEach(b => {
+                            totalFar += parseInt(b.textContent) || 0;
+                        });
+                        footerMoto.textContent = totalMoto;
+                        footerFar.textContent = totalFar;
+                        footerTotal.textContent = totalMoto + totalFar;
+                    }
+
+                    // Update data attributes on edit/delete triggers
+                    const row = document.querySelector('.group-row[data-group="' + groupIdx + '"]');
+                    if (row) {
+                        const newKey = data.new_key || (newDate + '|' + location);
+                        row.dataset.key = newKey;
+                        row.querySelector('.edit-trigger').dataset.key = newKey;
+                        row.querySelector('.edit-trigger').dataset.date = newDate;
+                        row.querySelector('.edit-trigger').dataset.location = location;
+                        row.querySelector('.edit-trigger').dataset.moto = moto;
+                        row.querySelector('.edit-trigger').dataset.far = far;
+                        row.querySelector('.delete-trigger').dataset.key = newKey;
+                        row.querySelector('.delete-trigger').dataset.location = location;
+                        row.querySelector('.delete-trigger').dataset.date = newDate;
+                        row.querySelector('.view-trigger').dataset.key = newKey;
+                    }
+
+                    closeEditModal();
+                    const flash = document.createElement('div');
+                    flash.className = 'alert alert-success';
+                    flash.textContent = '✅ Updated ' + data.count + ' records!';
+                    document.querySelector('.card').prepend(flash);
+                    setTimeout(() => flash.remove(), 3000);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(err => {
+                alert('❌ Network error: ' + err);
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        });
+
+        // ─── Delete Modal ───
+        const deleteModal = document.getElementById('deleteModal');
+        const cancelBtn = document.getElementById('cancelDelete');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        const messageEl = document.getElementById('deleteMessage');
+        let currentDeleteUrl = '';
+
+        document.querySelectorAll('.delete-trigger').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const count = this.dataset.count;
+                const location = this.dataset.location;
+                const date = this.dataset.date;
+                const key = this.dataset.key;
+                messageEl.textContent = `Are you sure you want to delete all ${count} records for ${date} at "${location}"? This cannot be undone.`;
+                currentDeleteUrl = '/delete_group/' + encodeURIComponent(key);
+                deleteModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        function closeDeleteModal() {
+            deleteModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        cancelBtn.addEventListener('click', closeDeleteModal);
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (deleteModal.classList.contains('active')) closeDeleteModal();
+                if (editModal.classList.contains('active')) closeEditModal();
+                if (document.getElementById('viewModal').classList.contains('active')) closeViewModal();
+            }
+        });
+        confirmBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentDeleteUrl) {
+                window.location.href = currentDeleteUrl;
+            }
+        });
+    });
+
+    // ─── UPDATED PRINT FUNCTION — responsive, resizable, per-fee-type print window ───
+    function printFeeRecords(feeType) {
+        const isMoto = feeType === 'moto';
+        const feeConfig = isMoto
+            ? { key: 'moto', label: 'Moto Fee', icon: '🛵', title: 'Moto Fee Summary', subtitle: 'Detailed breakdown of moto fees by date and location' }
+            : { key: 'far', label: 'Far Away Fee', icon: '🚗', title: 'Far Away Fee Summary', subtitle: 'Detailed breakdown of far away fees by date and location' };
+
+        const memberName = document.getElementById('memberName').textContent || 'User';
+
+        // Get all individual records from the table (group rows)
+        const rows = document.querySelectorAll('#feeTable tbody tr.group-row');
+        if (!rows.length) {
+            alert('No records to print.');
+            return;
+        }
+
+        // ─── Group records by date + location ───
+        const groups = {};
+        rows.forEach((row) => {
+            const date = row.querySelector('td:nth-child(2) .badge').textContent;
+            const location = row.querySelector('td:nth-child(3) strong').textContent;
+            const moto = parseInt(row.querySelector('td:nth-child(5) .badge').textContent) || 0;
+            const far = parseInt(row.querySelector('td:nth-child(6) .badge').textContent) || 0;
+            const key = date + '|' + location;
+            if (!groups[key]) {
+                groups[key] = { date, location, count: 0, moto: 0, far: 0 };
+            }
+            groups[key].count += 1;
+            groups[key].moto += moto;
+            groups[key].far += far;
+        });
+
+        // Only keep groups where the selected fee type actually has a value
+        const groupArray = Object.values(groups).filter(g => g[feeConfig.key] > 0);
+        groupArray.sort((a, b) => b.date.localeCompare(a.date)); // newest first
+
+        if (!groupArray.length) {
+            alert('No ' + feeConfig.label.toLowerCase() + ' records to print.');
+            return;
+        }
+
+        let tableRows = '';
+        let grandTotalFee = 0, grandTotalEntries = 0;
+
+        groupArray.forEach((g, idx) => {
+            const feeValue = g[feeConfig.key];
+            grandTotalFee += feeValue;
+            grandTotalEntries += g.count;
+
+            tableRows += `<tr>
+                <td class="cell-no">${idx + 1}</td>
+                <td class="cell-date">${g.date}</td>
+                <td class="cell-location">${g.location}</td>
+                <td class="text-center cell-times">${g.count}</td>
+                <td class="text-end cell-total">${feeValue.toLocaleString()}</td>
+            </tr>`;
+        });
+
+        const now = new Date();
+        const generated = now.toISOString().slice(0, 16).replace('T', ' ');
+
+        // QR code block — only rendered if the user has attached one
+        const qrBlock = qrCodeDataUrl
+            ? `<div class="qr-block">
+                   <img src="${qrCodeDataUrl}" alt="QR Code" class="qr-image">
+                   <div class="qr-caption">Scan to Pay</div>
+               </div>`
+            : `<div class="qr-block qr-block-empty"></div>`;
+
+        // ─── Build print content ───
+        const printContent = `
+            <div class="print-sheet">
+                <!-- Toolbar (screen only, never printed) -->
+                <div class="no-print toolbar">
+                    <div class="toolbar-title">🖨️ Print Preview <span class="toolbar-count">${groupArray.length} ${groupArray.length === 1 ? 'group' : 'groups'}</span></div>
+                    <div class="toolbar-actions">
+                        <button class="tbtn tbtn-outline" onclick="window.close()">✕ Close</button>
+                        <button class="tbtn tbtn-primary" onclick="window.print()">🖨️ Print</button>
+                    </div>
+                </div>
+
+                <div class="sheet-inner">
+                    <div class="accent-bar"></div>
+
+                    <!-- QR code + Generated timestamp -->
+                    <div class="meta-row">
+                        ${qrBlock}
+                        <div class="generated">🕒 Generated ${generated}</div>
+                    </div>
+
+                    <!-- Brand -->
+                    <div class="print-header">
+                        <div class="brand">
+                            <span class="brand-c">C</span><span class="brand-a">A</span><span class="brand-rest">MMED LAB</span>
+                        </div>
+                        <div class="brand-sub">Leading Diagnostics</div>
+                    </div>
+
+                    <!-- Member -->
+                    <div class="member-row">
+                        <span class="member-icon">👤</span>
+                        <span class="member-name">${memberName}</span>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="title-block">
+                        <div class="doc-title"><span class="doc-title-icon">${feeConfig.icon}</span> ${feeConfig.title}</div>
+                        <div class="doc-subtitle">${feeConfig.subtitle}</div>
+                    </div>
+
+                    <div class="section-divider">
+                        <span class="section-count">${groupArray.length} ${groupArray.length === 1 ? 'group' : 'groups'} · ${grandTotalEntries} ${grandTotalEntries === 1 ? 'entry' : 'entries'}</span>
+                    </div>
+
+                    <!-- Fee Summary Table -->
+                    <div class="table-wrap">
+                        <table class="print-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:8%;">No.</th>
+                                    <th style="width:20%;">Date</th>
+                                    <th style="width:38%;">Location</th>
+                                    <th style="width:14%;" class="text-center">Times</th>
+                                    <th style="width:20%;" class="text-end">${feeConfig.label}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="total-label">TOTAL ${feeConfig.label}</td>
+                                    <td class="text-center total-muted">${grandTotalEntries}</td>
+                                    <td class="text-end total-final">${grandTotalFee.toLocaleString()}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Signature Footer -->
+                    <div class="signature-footer">
+                        <div class="sig-block">
+                            <span class="sig-label">✍️ Prepared by</span>
+                            <span class="sig-line"></span>
+                        </div>
+                        <div class="sig-block">
+                            <span class="sig-label">✅ Verified by</span>
+                            <span class="sig-line"></span>
+                        </div>
+                        <div class="sig-block">
+                            <span class="sig-label">📥 Received by</span>
+                            <span class="sig-line"></span>
+                        </div>
+                    </div>
+
+                    <div class="print-footnote">CAMMED LAB · ${feeConfig.title} Report · Page <span class="page-num"></span></div>
+                </div>
+            </div>
+        `;
+
+        // ─── Open print window ───
+        const win = window.open('', '_blank', 'width=1100,height=850,resizable=yes,scrollbars=yes');
+        if (!win) {
+            alert('Please allow popups for this site.');
+            return;
+        }
+
+        win.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>${feeConfig.title} - ${memberName}</title>
+                <style>
+                    :root {
+                        --primary: #1a3a5c;
+                        --primary-light: #2b5d8d;
+                        --accent: #c0392b;
+                        --border: #e7ebf1;
+                        --border-strong: #d5dce5;
+                        --muted: #8a9aa8;
+                        --green: #16875a;
+                        --green-bg: #eafaf3;
+                        --gray-text: #5b6b7c;
+                        --row-tint: #fafcfe;
+                    }
+                    * { box-sizing: border-box; }
+                    html, body {
+                        margin: 0;
+                        padding: 0;
+                        background: #eef2f6;
+                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                        color: var(--primary);
+                        -webkit-font-smoothing: antialiased;
+                    }
+
+                    /* ─── On-screen toolbar (hidden on print) ─── */
+                    .print-sheet { padding-top: 18px; }
+                    .toolbar {
+                        position: sticky;
+                        top: 14px;
+                        z-index: 10;
+                        width: min(calc(100% - 32px), 900px);
+                        margin: 0 auto 22px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 12px clamp(14px, 3vw, 24px);
+                        background: #ffffff;
+                        border: 1px solid var(--border);
+                        border-radius: 14px;
+                        box-shadow: 0 10px 28px rgba(26,58,92,0.12);
+                    }
+                    .toolbar-title { font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; }
+                    .toolbar-count {
+                        font-weight: 700;
+                        font-size: 0.68rem;
+                        color: var(--primary-light);
+                        background: #e8f0fe;
+                        padding: 3px 10px;
+                        border-radius: 20px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.3px;
+                    }
+                    .toolbar-actions { display: flex; gap: 10px; }
+                    .tbtn {
+                        border: none;
+                        border-radius: 8px;
+                        padding: 9px 20px;
+                        font-weight: 700;
+                        font-size: 0.85rem;
+                        cursor: pointer;
+                        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+                    }
+                    .tbtn-primary { background: linear-gradient(135deg, #1a3a5c, #2b5d8d); color: #fff; }
+                    .tbtn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26,58,92,0.25); }
+                    .tbtn-outline { background: #fff; border: 1.5px solid var(--border-strong); color: var(--primary); }
+                    .tbtn-outline:hover { background: #f5f8fb; border-color: var(--primary-light); }
+
+                    /* ─── Resizable / responsive sheet ─── */
+                    .print-sheet {
+                        min-height: 100vh;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                    }
+                    .sheet-inner {
+                        position: relative;
+                        width: min(100%, 900px);
+                        margin: clamp(16px, 3vw, 34px) auto;
+                        background: #fff;
+                        padding: clamp(24px, 4vw, 46px) clamp(20px, 5vw, 54px) clamp(28px, 4vw, 44px);
+                        border-radius: 14px;
+                        box-shadow: 0 12px 40px rgba(26,58,92,0.10), 0 2px 8px rgba(26,58,92,0.05);
+                        overflow: hidden;
+                    }
+
+                    /* Top accent bar */
+                    .accent-bar {
+                        position: absolute;
+                        top: 0; left: 0; right: 0;
+                        height: 6px;
+                        background: linear-gradient(90deg, #1a3a5c 0%, #2b5d8d 55%, #c0392b 100%);
+                    }
+
+                    /* Meta row: QR code (left) + Generated timestamp (right) */
+                    .meta-row {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        gap: 12px;
+                        margin: 6px 0 16px;
+                        min-height: 20px;
+                    }
+                    .qr-block {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 3px;
+                    }
+                    .qr-block-empty { min-height: 1px; }
+                    .qr-image {
+                        width: 64px;
+                        height: 64px;
+                        object-fit: contain;
+                        background: #fff;
+                        border: 1px solid var(--border-strong);
+                        border-radius: 8px;
+                        padding: 4px;
+                    }
+                    .qr-caption {
+                        font-size: 0.58rem;
+                        font-weight: 700;
+                        color: var(--muted);
+                        text-transform: uppercase;
+                        letter-spacing: 0.4px;
+                    }
+
+                    /* Generated timestamp */
+                    .generated {
+                        text-align: right;
+                        font-size: 0.75rem;
+                        color: var(--primary-light);
+                        font-weight: 600;
+                        letter-spacing: 0.2px;
+                        white-space: nowrap;
+                        padding-top: 4px;
+                    }
+
+                    /* Header / brand */
+                    .print-header { text-align: center; margin-bottom: 4px; }
+                    .brand {
+                        font-family: 'Montserrat', system-ui, sans-serif;
+                        font-weight: 900;
+                        font-size: clamp(1.5rem, 3vw, 2rem);
+                        letter-spacing: -0.5px;
+                    }
+                    .brand-c { color: var(--primary); }
+                    .brand-a { color: var(--accent); }
+                    .brand-rest { color: var(--primary); }
+                    .brand-sub {
+                        font-size: 0.68rem;
+                        color: var(--muted);
+                        letter-spacing: 2px;
+                        text-transform: uppercase;
+                        margin-top: 0;
+                        font-weight: 600;
+                    }
+
+                    /* Member row */
+                    .member-row {
+                        margin: 26px 0 6px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                    .member-icon {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 26px; height: 26px;
+                        border-radius: 50%;
+                        background: #e8f0fe;
+                        font-size: 0.85rem;
+                    }
+                    .member-name {
+                        font-size: clamp(0.95rem, 1.8vw, 1.05rem);
+                        font-weight: 800;
+                        color: var(--primary);
+                    }
+
+                    /* Title block */
+                    .title-block { text-align: center; margin: 20px 0 4px; }
+                    .doc-title {
+                        font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+                        font-weight: 800;
+                        color: var(--primary);
+                        letter-spacing: 0.2px;
+                    }
+                    .doc-title-icon { margin-right: 4px; }
+                    .doc-subtitle {
+                        font-size: 0.75rem;
+                        color: var(--muted);
+                        margin-top: 4px;
+                        font-weight: 500;
+                    }
+
+                    /* Section divider with count */
+                    .section-divider {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 18px 0 14px;
+                    }
+                    .section-count {
+                        font-size: 0.68rem;
+                        font-weight: 700;
+                        letter-spacing: 0.5px;
+                        text-transform: uppercase;
+                        color: var(--primary-light);
+                        background: #f1f6fc;
+                        padding: 4px 14px;
+                        border-radius: 20px;
+                        border: 1px solid var(--border);
+                    }
+
+                    /* Table */
+                    .table-wrap { overflow-x: auto; border-radius: 10px; }
+                    .print-table {
+                        width: 100%;
+                        min-width: 560px;
+                        border-collapse: collapse;
+                        font-size: clamp(0.75rem, 1.4vw, 0.85rem);
+                    }
+                    .print-table th, .print-table td {
+                        padding: 12px 14px;
+                        border-bottom: 1px solid var(--border);
+                        text-align: left;
+                    }
+                    .print-table thead th {
+                        background: #f7fafd;
+                        font-weight: 800;
+                        font-size: 0.66rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        color: var(--primary);
+                        border-bottom: 1.5px solid var(--border-strong);
+                        border-top: 1px solid var(--border-strong);
+                    }
+                    .print-table thead th:first-child { border-top-left-radius: 8px; }
+                    .print-table thead th:last-child { border-top-right-radius: 8px; }
+                    .print-table tbody tr:nth-child(even) { background: var(--row-tint); }
+                    .print-table tbody tr:hover { background: #f1f6fc; }
+                    .text-center { text-align: center; }
+                    .text-end { text-align: right; }
+
+                    .cell-no { color: var(--muted); font-weight: 600; }
+                    .cell-date { color: var(--gray-text); font-variant-numeric: tabular-nums; }
+                    .cell-location { color: var(--primary); font-weight: 700; }
+                    .cell-times { color: var(--gray-text); font-weight: 600; }
+                    .cell-fee { color: var(--green); font-weight: 700; font-variant-numeric: tabular-nums; }
+                    .cell-total {
+                        color: var(--green);
+                        font-weight: 800;
+                        font-variant-numeric: tabular-nums;
+                        background: var(--green-bg);
+                        border-radius: 6px;
+                    }
+
+                    .print-table tfoot td {
+                        border-bottom: none;
+                        border-top: 2px solid var(--primary);
+                        font-weight: 800;
+                        padding-top: 14px;
+                        padding-bottom: 14px;
+                        background: #f7fafd;
+                    }
+                    .print-table tfoot tr td:first-child { border-bottom-left-radius: 8px; }
+                    .print-table tfoot tr td:last-child { border-bottom-right-radius: 8px; }
+                    .total-label { color: var(--primary); font-size: 0.85rem; letter-spacing: 0.3px; }
+                    .total-muted { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+                    .total-final {
+                        color: var(--primary);
+                        font-weight: 900;
+                        font-size: 1rem;
+                        font-variant-numeric: tabular-nums;
+                    }
+
+                    /* Signature footer */
+                    .signature-footer {
+                        display: flex;
+                        justify-content: space-between;
+                        flex-wrap: wrap;
+                        gap: 26px;
+                        margin-top: 48px;
+                        padding-top: 22px;
+                        border-top: 1px dashed var(--border-strong);
+                    }
+                    .sig-block {
+                        flex: 1 1 160px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 26px;
+                    }
+                    .sig-label {
+                        font-size: 0.78rem;
+                        font-weight: 700;
+                        color: var(--gray-text);
+                        white-space: nowrap;
+                    }
+                    .sig-line {
+                        display: block;
+                        border-bottom: 1.5px solid var(--primary);
+                        height: 1px;
+                    }
+
+                    .print-footnote {
+                        text-align: center;
+                        margin-top: 30px;
+                        font-size: 0.65rem;
+                        color: var(--muted);
+                        letter-spacing: 0.3px;
+                    }
+                    .page-num::after { content: "1"; }
+
+                    /* ─── Responsive breakpoints for the popup window itself ─── */
+                    @media (max-width: 700px) {
+                        .sheet-inner { border-radius: 0; box-shadow: none; padding: 20px 16px; }
+                        .meta-row { flex-wrap: wrap; }
+                        .generated { text-align: left; }
+                        .member-row { justify-content: flex-start; }
+                        .signature-footer { flex-direction: column; gap: 24px; }
+                    }
+
+                    /* ─── Print-specific rules ─── */
+                    @page {
+                        size: A4 portrait;
+                        margin: 14mm 12mm;
+                    }
+                    @media print {
+                        .no-print { display: none !important; }
+                        html, body { background: #fff; }
+                        .print-sheet { min-height: auto; }
+                        .sheet-inner {
+                            width: 100%;
+                            margin: 0;
+                            padding: 6px 0 0;
+                            border-radius: 0;
+                            box-shadow: none;
+                        }
+                        .accent-bar { position: static; height: 4px; margin-bottom: 22px; }
+                        .print-table { font-size: 10.5px; }
+                        .print-table thead { display: table-header-group; }
+                        .print-table tr { break-inside: avoid; }
+                        .print-table tbody tr:nth-child(even) { background: #fbfcfe; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${printContent}
+            </body>
+            </html>
+        `);
+        win.document.close();
+    }
+</script>
+{% endblock %}

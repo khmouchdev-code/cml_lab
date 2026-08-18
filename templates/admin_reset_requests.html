@@ -1,0 +1,1045 @@
+{% extends "base.html" %}
+{% block title %}Password Reset Requests - Admin{% endblock %}
+{% block content %}
+<style>
+    .page-wrapper {
+        padding-top: 20px;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2b5d8d, #1f456c);
+        color: white;
+        padding: 18px 25px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    .page-header h4 {
+        font-size: clamp(1rem, 2.5vw, 1.5rem);
+        margin-bottom: 4px;
+    }
+    .page-header p {
+        font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+        opacity: 0.8;
+        margin-bottom: 0;
+    }
+
+    .stat-mini {
+        background: white;
+        border-radius: 10px;
+        padding: 12px 10px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        margin-bottom: 15px;
+        transition: transform 0.2s;
+    }
+    .stat-mini:hover {
+        transform: translateY(-3px);
+    }
+    .stat-mini h4 {
+        margin: 0;
+        font-weight: 700;
+        font-size: clamp(1.2rem, 3vw, 1.8rem);
+    }
+    .stat-mini small {
+        color: #888;
+        font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    .status-approved {
+        background: #d4edda;
+        color: #155724;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+        white-space: nowrap;
+    }
+
+    .table th {
+        background: #f8f9fa;
+        color: #2b5d8d;
+        font-weight: 600;
+        font-size: clamp(0.6rem, 1.2vw, 0.75rem);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    .table td {
+        font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+        vertical-align: middle;
+        word-wrap: break-word;
+        max-width: 150px;
+    }
+    .table td .badge {
+        font-size: clamp(0.6rem, 1.1vw, 0.75rem);
+    }
+
+    .code-badge {
+        background: #e8f4fd;
+        color: #0c5460;
+        padding: 2px 10px;
+        border-radius: 15px;
+        font-size: clamp(0.6rem, 1.1vw, 0.75rem);
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        display: inline-block;
+        border: 1px dashed #0c5460;
+        word-break: break-all;
+    }
+
+    .reason-text {
+        font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+        color: #555;
+        display: block;
+        word-wrap: break-word;
+        max-width: 200px;
+    }
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border: none;
+        overflow: hidden;
+    }
+    .card-body {
+        padding: 15px 20px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+    }
+    .empty-state .icon {
+        font-size: 48px;
+        color: #ddd;
+        margin-bottom: 15px;
+    }
+    .empty-state h5 {
+        color: #666;
+        font-size: clamp(1rem, 2vw, 1.25rem);
+    }
+    .empty-state p {
+        color: #999;
+        font-size: clamp(0.8rem, 1.5vw, 1rem);
+    }
+
+    .container-fluid {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    /* ========== APPROVAL MODAL ========== */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        animation: fadeInOverlay 0.3s ease;
+        padding: 20px;
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    @keyframes fadeInOverlay {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 16px;
+        padding: 30px 35px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        font-size: 24px;
+        color: #999;
+        cursor: pointer;
+        transition: color 0.2s;
+        background: none;
+        border: none;
+        font-family: 'Inter', sans-serif;
+        padding: 5px 10px;
+    }
+    .modal-close:hover {
+        color: #333;
+    }
+
+    .modal-box h3 {
+        color: #203B79;
+        font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+    .modal-box .subtitle {
+        color: #666;
+        font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+        margin-bottom: 20px;
+    }
+
+    .modal-box .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .modal-box .info-row .label {
+        color: #888;
+        font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+    .modal-box .info-row .value {
+        color: #203B79;
+        font-weight: 600;
+        font-size: clamp(0.75rem, 1.4vw, 0.85rem);
+        text-align: right;
+        word-break: break-word;
+        flex: 1;
+    }
+    .modal-box .info-row .value.code {
+        font-family: 'Courier New', monospace;
+        background: #f0f4f8;
+        padding: 2px 10px;
+        border-radius: 4px;
+    }
+
+    .modal-box .form-group {
+        margin-top: 16px;
+    }
+    .modal-box .form-group label {
+        font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+        font-weight: 600;
+        color: #333;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .modal-box .form-group label .required {
+        color: #dc3545;
+    }
+    .modal-box .form-group input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid #e8ecf1;
+        border-radius: 8px;
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        transition: all 0.25s ease;
+        background: #fafbfc;
+        color: #333;
+        font-family: 'Courier New', monospace;
+    }
+    .modal-box .form-group input:focus {
+        outline: none;
+        border-color: #203B79;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(32, 59, 121, 0.08);
+    }
+
+    .modal-box .warning-box {
+        margin-top: 16px;
+        padding: 12px 16px;
+        background: #fff3cd;
+        border-radius: 8px;
+        border-left: 4px solid #f39c12;
+        font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+        color: #856404;
+    }
+    .modal-box .warning-box strong {
+        font-weight: 700;
+    }
+
+    .modal-box .btn-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+    .modal-box .btn-row .btn-confirm {
+        flex: 2;
+        min-width: 120px;
+        padding: 10px 16px;
+        background: #27ae60;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .modal-box .btn-row .btn-confirm:hover {
+        background: #219a52;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+    }
+    .modal-box .btn-row .btn-confirm:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .modal-box .btn-row .btn-cancel {
+        flex: 1;
+        min-width: 80px;
+        padding: 10px 16px;
+        background: #6c757d;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .modal-box .btn-row .btn-cancel:hover {
+        background: #5a6268;
+    }
+
+    /* ========== REJECT MODAL ========== */
+    .modal-box.reject {
+        border-top: 5px solid #dc3545;
+    }
+    .modal-box.reject h3 {
+        color: #dc3545;
+    }
+    .modal-box.reject .reject-icon {
+        font-size: 48px;
+        color: #dc3545;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .modal-box.reject .warning-text {
+        background: #f8d7da;
+        padding: 12px 16px;
+        border-radius: 8px;
+        color: #721c24;
+        font-size: clamp(0.75rem, 1.3vw, 0.85rem);
+        margin: 15px 0;
+        border-left: 4px solid #dc3545;
+    }
+    .modal-box.reject .btn-row .btn-confirm-reject {
+        flex: 2;
+        min-width: 120px;
+        padding: 10px 16px;
+        background: #dc3545;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .modal-box.reject .btn-row .btn-confirm-reject:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+    }
+    .modal-box.reject .btn-row .btn-confirm-reject:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .modal-box.reject .btn-row .btn-cancel-reject {
+        flex: 1;
+        min-width: 80px;
+        padding: 10px 16px;
+        background: #6c757d;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .modal-box.reject .btn-row .btn-cancel-reject:hover {
+        background: #5a6268;
+    }
+
+    /* ========== SUCCESS MODAL ========== */
+    .success-modal .modal-box {
+        text-align: center;
+        padding: 40px 35px;
+    }
+    .success-modal .check-icon {
+        font-size: clamp(48px, 8vw, 72px);
+        color: #27ae60;
+        margin-bottom: 10px;
+    }
+    .success-modal h3 {
+        color: #27ae60;
+        font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+        margin-bottom: 8px;
+    }
+    .success-modal p {
+        color: #666;
+        font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+        margin-bottom: 16px;
+        line-height: 1.6;
+    }
+    .success-modal .btn-done {
+        padding: 10px 35px;
+        background: #27ae60;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .success-modal .btn-done:hover {
+        background: #219a52;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+    }
+
+    /* ========== REJECT SUCCESS MODAL ========== */
+    .reject-success-modal .modal-box {
+        text-align: center;
+        padding: 40px 35px;
+        border-top: 5px solid #dc3545;
+    }
+    .reject-success-modal .reject-icon {
+        font-size: clamp(48px, 8vw, 72px);
+        color: #dc3545;
+        margin-bottom: 10px;
+    }
+    .reject-success-modal h3 {
+        color: #dc3545;
+        font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+        margin-bottom: 8px;
+    }
+    .reject-success-modal p {
+        color: #666;
+        font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+        margin-bottom: 16px;
+        line-height: 1.6;
+    }
+    .reject-success-modal .btn-done {
+        padding: 10px 35px;
+        background: #dc3545;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .reject-success-modal .btn-done:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .page-wrapper {
+            padding-top: 10px;
+        }
+        .modal-box {
+            padding: 20px 18px;
+            margin: 10px;
+        }
+        .modal-box .btn-row {
+            flex-direction: column;
+        }
+        .modal-box .btn-row .btn-confirm,
+        .modal-box .btn-row .btn-cancel,
+        .modal-box .btn-row .btn-confirm-reject,
+        .modal-box .btn-row .btn-cancel-reject {
+            width: 100%;
+            min-width: unset;
+        }
+        .modal-box .info-row {
+            flex-direction: column;
+            text-align: left;
+        }
+        .modal-box .info-row .value {
+            text-align: left;
+        }
+        .page-header {
+            padding: 15px 18px;
+        }
+        .stat-mini {
+            padding: 10px 8px;
+        }
+        .card-body {
+            padding: 10px 12px;
+        }
+        .table td {
+            max-width: 100px;
+        }
+        .reason-text {
+            max-width: 120px;
+        }
+        .btn-sm {
+            padding: 2px 6px;
+            font-size: 0.6rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-wrapper {
+            padding-top: 5px;
+        }
+        .page-header {
+            padding: 12px 15px;
+        }
+        .modal-box {
+            padding: 16px 14px;
+        }
+        .modal-box .info-row {
+            padding: 6px 0;
+        }
+        .table td {
+            max-width: 80px;
+            font-size: 0.65rem;
+        }
+        .table th {
+            font-size: 0.6rem;
+        }
+        .code-badge {
+            font-size: 0.55rem;
+            padding: 1px 6px;
+        }
+        .reason-text {
+            max-width: 80px;
+            font-size: 0.6rem;
+        }
+        .stat-mini h4 {
+            font-size: 1rem;
+        }
+        .stat-mini small {
+            font-size: 0.55rem;
+        }
+        .status-pending,
+        .status-approved,
+        .status-rejected {
+            font-size: 0.55rem;
+            padding: 2px 6px;
+        }
+    }
+</style>
+
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="page-header">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h4 class="mb-1">🔑 Password Reset Requests</h4>
+                    <p class="mb-0 opacity-75">Manage password reset requests from members</p>
+                </div>
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-light btn-sm no-print">
+                    <i class="fas fa-arrow-left"></i> Back to Admin
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-2 g-sm-3 mb-3">
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <h4 style="color:#2b5d8d;" id="totalStats">{{ requests|length }}</h4>
+                    <small>Total Requests</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <h4 style="color:#f39c12;" id="pendingStats">{{ pending_count }}</h4>
+                    <small>Pending</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <h4 style="color:#27ae60;" id="approvedStats">
+                        {{ requests|selectattr('status', 'equalto', 'Approved')|list|length }}
+                    </h4>
+                    <small>Approved</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <h4 style="color:#dc3545;" id="rejectedStats">
+                        {{ requests|selectattr('status', 'equalto', 'Rejected')|list|length }}
+                    </h4>
+                    <small>Rejected</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0 p-sm-2">
+                <div id="requestsContainer">
+                    {% if requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="requestsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Full Name</th>
+                                    <th>Username</th>
+                                    <th>Phone</th>
+                                    <th>Request Code</th>
+                                    <th>Reason</th>
+                                    <th>Request Date</th>
+                                    <th>Status</th>
+                                    <th class="no-print">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestsBody">
+                                {% for req in requests %}
+                                    {% if req.status == 'Pending' %}
+                                    <tr id="request-row-{{ req.id }}">
+                                        <td><strong>{{ req.id }}</strong></td>
+                                        <td>{{ req.fullname }}</td>
+                                        <td><span class="badge bg-secondary">{{ req.username }}</span></td>
+                                        <td>{{ req.phone or '-' }}</td>
+                                        <td>
+                                            <span class="code-badge">{{ req.request_code or '-' }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="reason-text">{{ req.reason[:60] ~ '...' if req.reason and req.reason|length > 60 else req.reason or '-' }}</span>
+                                        </td>
+                                        <td>{{ req.request_date|cambodia_time if req.request_date else '-' }}</td>
+                                        <td>
+                                            <span class="status-pending" id="status-{{ req.id }}">⏳ Pending</span>
+                                        </td>
+                                        <td class="no-print">
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <button class="btn btn-success btn-sm approve-btn"
+                                                        data-id="{{ req.id }}"
+                                                        data-username="{{ req.username }}"
+                                                        data-fullname="{{ req.fullname }}"
+                                                        data-phone="{{ req.phone or 'N/A' }}"
+                                                        data-code="{{ req.request_code or '-' }}">
+                                                    ✅ Approve
+                                                </button>
+                                                <button class="btn btn-danger btn-sm reject-btn"
+                                                        data-id="{{ req.id }}"
+                                                        data-username="{{ req.username }}"
+                                                        data-fullname="{{ req.fullname }}"
+                                                        data-phone="{{ req.phone or 'N/A' }}"
+                                                        data-code="{{ req.request_code or '-' }}">
+                                                    ❌ Reject
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state" id="emptyState">
+                        <div class="icon">🔑</div>
+                        <h5>No Password Reset Requests</h5>
+                        <p>There are no pending or completed password reset requests.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== APPROVAL CONFIRMATION MODAL ========== -->
+<div class="modal-overlay" id="approvalModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeApprovalModal()">✕</button>
+        <h3>🔑 Approve Password Reset</h3>
+        <p class="subtitle">Confirm password reset for the following member:</p>
+
+        <div class="info-row">
+            <span class="label">Full Name</span>
+            <span class="value" id="approvalFullName">-</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Username</span>
+            <span class="value" id="approvalUsername">-</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Phone Number</span>
+            <span class="value" id="approvalPhone">-</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Request Code</span>
+            <span class="value code" id="approvalCode">-</span>
+        </div>
+
+        <div class="form-group">
+            <label for="newPasswordInput">New Password <span class="required">*</span></label>
+            <input type="text" id="newPasswordInput" class="form-control" value="pass123" placeholder="Enter new password">
+            <small style="font-size: clamp(0.6rem, 1.1vw, 0.7rem); color: #888; display: block; margin-top: 4px;">
+                <i class="fas fa-info-circle"></i> You can customize the password or leave as default (pass123)
+            </small>
+        </div>
+
+        <div class="warning-box">
+            <i class="fas fa-exclamation-triangle"></i>
+            Password will be reset to: <strong id="displayPassword">pass123</strong>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn-confirm" onclick="confirmApproval()" id="confirmBtn">
+                <i class="fas fa-check"></i> Approve & Reset
+            </button>
+            <button class="btn-cancel" onclick="closeApprovalModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== REJECT CONFIRMATION MODAL ========== -->
+<div class="modal-overlay" id="rejectModal">
+    <div class="modal-box reject">
+        <button class="modal-close" onclick="closeRejectModal()">✕</button>
+        <div class="reject-icon">❌</div>
+        <h3>Reject Password Reset</h3>
+        <p class="subtitle">Are you sure you want to reject this request?</p>
+
+        <div class="info-row">
+            <span class="label">Full Name</span>
+            <span class="value" id="rejectFullName">-</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Username</span>
+            <span class="value" id="rejectUsername">-</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Phone Number</span>
+            <span class="value" id="rejectPhone">-</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Request Code</span>
+            <span class="value code" id="rejectCode">-</span>
+        </div>
+
+        <div class="warning-text">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            This action cannot be undone. The member will need to submit a new request.
+        </div>
+
+        <div class="btn-row">
+            <button class="btn-confirm-reject" onclick="confirmReject()" id="rejectConfirmBtn">
+                <i class="fas fa-times"></i> Yes, Reject
+            </button>
+            <button class="btn-cancel-reject" onclick="closeRejectModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== SUCCESS MODAL (APPROVE) ========== -->
+<div class="modal-overlay success-modal" id="successModal">
+    <div class="modal-box">
+        <div class="check-icon">✅</div>
+        <h3>Password Reset Approved!</h3>
+        <p>
+            The password for <strong id="successUsername">-</strong> has been reset to <strong id="successPassword">pass123</strong>.
+            <br><br>
+            The request has been processed and removed from the pending list.
+        </p>
+        <button class="btn-done" onclick="closeSuccessModal()">
+            <i class="fas fa-check"></i> Done
+        </button>
+    </div>
+</div>
+
+<!-- ========== REJECT SUCCESS MODAL ========== -->
+<div class="modal-overlay reject-success-modal" id="rejectSuccessModal">
+    <div class="modal-box">
+        <div class="reject-icon">❌</div>
+        <h3>Request Rejected!</h3>
+        <p>
+            The password reset request for <strong id="rejectSuccessUsername">-</strong> has been rejected.
+            <br><br>
+            The request has been removed from the pending list.
+        </p>
+        <button class="btn-done" onclick="closeRejectSuccessModal()">
+            <i class="fas fa-check"></i> Done
+        </button>
+    </div>
+</div>
+
+<script>
+    // ========== VARIABLES ==========
+    let currentRequestId = null;
+    let currentUsername = null;
+    let rejectRequestId = null;
+    let rejectUsername = null;
+
+    // ========== APPROVAL MODAL ==========
+    function openApprovalModal(requestId, username, fullname, phone, code) {
+        currentRequestId = requestId;
+        currentUsername = username;
+        document.getElementById('approvalFullName').textContent = fullname;
+        document.getElementById('approvalUsername').textContent = username;
+        document.getElementById('approvalPhone').textContent = phone;
+        document.getElementById('approvalCode').textContent = code;
+
+        const passwordInput = document.getElementById('newPasswordInput');
+        passwordInput.value = 'pass123';
+        document.getElementById('displayPassword').textContent = 'pass123';
+
+        document.getElementById('approvalModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(() => {
+            passwordInput.focus();
+            passwordInput.select();
+        }, 300);
+    }
+
+    function closeApprovalModal() {
+        document.getElementById('approvalModal').classList.remove('active');
+        document.body.style.overflow = '';
+        currentRequestId = null;
+        currentUsername = null;
+    }
+
+    // ========== LIVE PASSWORD PREVIEW ==========
+    document.getElementById('newPasswordInput').addEventListener('input', function() {
+        const password = this.value.trim() || 'pass123';
+        document.getElementById('displayPassword').textContent = password;
+    });
+
+    // ========== CONFIRM APPROVAL ==========
+    function confirmApproval() {
+        if (!currentRequestId) return;
+
+        const passwordInput = document.getElementById('newPasswordInput');
+        const newPassword = passwordInput.value.trim() || 'pass123';
+
+        if (newPassword.length < 4) {
+            alert('Password must be at least 4 characters long.');
+            passwordInput.focus();
+            return;
+        }
+
+        const confirmBtn = document.getElementById('confirmBtn');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        confirmBtn.disabled = true;
+
+        fetch(`/admin/reset_request/${currentRequestId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                new_password: newPassword
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeApprovalModal();
+
+                document.getElementById('successUsername').textContent = data.username || currentUsername || 'User';
+                document.getElementById('successPassword').textContent = newPassword;
+                document.getElementById('successModal').classList.add('active');
+            } else {
+                alert('Error: ' + data.message);
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        })
+        .catch(function(error) {
+            alert('Error processing request: ' + error);
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        });
+    }
+
+    // ========== SUCCESS MODAL (APPROVE) ==========
+    function closeSuccessModal() {
+        document.getElementById('successModal').classList.remove('active');
+        document.body.style.overflow = '';
+        location.reload();
+    }
+
+    // ========== REJECT MODAL ==========
+    function openRejectModal(requestId, username, fullname, phone, code) {
+        rejectRequestId = requestId;
+        rejectUsername = username;
+        document.getElementById('rejectFullName').textContent = fullname;
+        document.getElementById('rejectUsername').textContent = username;
+        document.getElementById('rejectPhone').textContent = phone;
+        document.getElementById('rejectCode').textContent = code;
+
+        document.getElementById('rejectModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRejectModal() {
+        document.getElementById('rejectModal').classList.remove('active');
+        document.body.style.overflow = '';
+        rejectRequestId = null;
+        rejectUsername = null;
+    }
+
+    // ========== CONFIRM REJECT ==========
+    function confirmReject() {
+        if (!rejectRequestId) return;
+
+        const confirmBtn = document.getElementById('rejectConfirmBtn');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        confirmBtn.disabled = true;
+
+        fetch(`/admin/reset_request/${rejectRequestId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeRejectModal();
+
+                document.getElementById('rejectSuccessUsername').textContent = data.username || rejectUsername || 'User';
+                document.getElementById('rejectSuccessModal').classList.add('active');
+            } else {
+                alert('Error: ' + data.message);
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        })
+        .catch(function(error) {
+            alert('Error processing request: ' + error);
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        });
+    }
+
+    // ========== REJECT SUCCESS MODAL ==========
+    function closeRejectSuccessModal() {
+        document.getElementById('rejectSuccessModal').classList.remove('active');
+        document.body.style.overflow = '';
+        location.reload();
+    }
+
+    // ========== CLOSE MODAL ON OUTSIDE CLICK ==========
+    document.getElementById('approvalModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeApprovalModal();
+        }
+    });
+
+    document.getElementById('rejectModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeRejectModal();
+        }
+    });
+
+    document.getElementById('successModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeSuccessModal();
+        }
+    });
+
+    document.getElementById('rejectSuccessModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeRejectSuccessModal();
+        }
+    });
+
+    // ========== CLOSE MODAL WITH ESCAPE KEY ==========
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('approvalModal').classList.contains('active')) {
+                closeApprovalModal();
+            }
+            if (document.getElementById('rejectModal').classList.contains('active')) {
+                closeRejectModal();
+            }
+            if (document.getElementById('successModal').classList.contains('active')) {
+                closeSuccessModal();
+            }
+            if (document.getElementById('rejectSuccessModal').classList.contains('active')) {
+                closeRejectSuccessModal();
+            }
+        }
+    });
+
+    // ========== APPROVE BUTTON CLICK ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.approve-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var id = this.getAttribute('data-id');
+                var username = this.getAttribute('data-username');
+                var fullname = this.getAttribute('data-fullname');
+                var phone = this.getAttribute('data-phone');
+                var code = this.getAttribute('data-code');
+                openApprovalModal(id, username, fullname, phone, code);
+            });
+        });
+
+        // ========== REJECT BUTTON CLICK ==========
+        document.querySelectorAll('.reject-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var id = this.getAttribute('data-id');
+                var username = this.getAttribute('data-username');
+                var fullname = this.getAttribute('data-fullname');
+                var phone = this.getAttribute('data-phone');
+                var code = this.getAttribute('data-code');
+                openRejectModal(id, username, fullname, phone, code);
+            });
+        });
+    });
+</script>
+{% endblock %}

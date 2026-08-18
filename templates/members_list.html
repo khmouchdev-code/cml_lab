@@ -1,0 +1,3053 @@
+{% extends "base.html" %}
+
+{% block title %}All Members - CMS{% endblock %}
+
+{% block content %}
+
+<style>
+
+/* ==========================================================
+   MEMBERS PAGE
+   ========================================================== */
+
+.members-page {
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: clamp(16px, 2.5vw, 32px);
+    box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   HEADER
+   ========================================================== */
+
+.members-header {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: clamp(20px, 3vw, 30px);
+
+    margin-bottom: 24px;
+
+    border-radius: 18px;
+
+    background: linear-gradient(
+        135deg,
+        #2b5d8d 0%,
+        #1f456c 100%
+    );
+
+    color: #fff;
+
+    box-shadow:
+        0 10px 30px rgba(31, 69, 108, .18);
+
+    overflow: hidden;
+}
+
+.members-header::after {
+    content: "";
+
+    position: absolute;
+
+    width: 220px;
+    height: 220px;
+
+    right: -80px;
+    top: -110px;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, .07);
+
+    pointer-events: none;
+}
+
+.members-header-left {
+    position: relative;
+    z-index: 2;
+
+    min-width: 0;
+}
+
+.members-header-title {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    margin: 0 0 5px;
+
+    font-size: clamp(
+        1.2rem,
+        2vw,
+        1.55rem
+    );
+
+    font-weight: 800;
+
+    letter-spacing: -.4px;
+}
+
+.members-header-title span:first-child {
+    font-size: 1.25em;
+}
+
+.members-header-subtitle {
+    margin: 0;
+
+    color: rgba(255, 255, 255, .75);
+
+    font-size: .86rem;
+}
+
+.members-header-count {
+    position: relative;
+    z-index: 2;
+
+    flex-shrink: 0;
+
+    padding: 9px 15px;
+
+    border: 1px solid rgba(255, 255, 255, .2);
+
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, .1);
+
+    color: #fff;
+
+    font-size: .75rem;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* ==========================================================
+   SUMMARY CARDS
+   ========================================================== */
+
+.summary-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 16px;
+
+    margin-bottom: 26px;
+}
+
+.summary-card {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    min-width: 0;
+
+    padding: 18px;
+
+    border: 1px solid #e7ebf0;
+
+    border-radius: 15px;
+
+    background: #fff;
+
+    box-shadow:
+        0 3px 12px rgba(15, 23, 42, .04);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 22px rgba(15, 23, 42, .08);
+}
+
+.summary-icon {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 12px;
+
+    font-size: 20px;
+}
+
+.summary-members .summary-icon {
+    background: #edf5fc;
+}
+
+.summary-records .summary-icon {
+    background: #ecfdf3;
+}
+
+.summary-samples .summary-icon {
+    background: #fff7ed;
+}
+
+.summary-info {
+    min-width: 0;
+}
+
+.summary-number {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #1f2937;
+
+    font-size: 1.35rem;
+
+    line-height: 1;
+
+    font-weight: 800;
+}
+
+.summary-label {
+    display: block;
+
+    color: #8a94a3;
+
+    font-size: .68rem;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: .55px;
+}
+
+
+/* ==========================================================
+   SECTION HEADER
+   ========================================================== */
+
+.members-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 14px;
+}
+
+.members-section-title {
+    margin: 0;
+
+    color: #1f2937;
+
+    font-size: 1rem;
+
+    font-weight: 800;
+}
+
+.members-section-description {
+    margin: 3px 0 0;
+
+    color: #8a94a3;
+
+    font-size: .76rem;
+}
+
+
+/* ==========================================================
+   MEMBER FILTER
+   ========================================================== */
+
+.member-filter {
+    display: grid;
+
+    grid-template-columns:
+        minmax(260px, 1fr)
+        160px
+        160px
+        auto;
+
+    align-items: end;
+
+    gap: 10px;
+
+    margin-bottom: 10px;
+
+    padding: 14px;
+
+    border: 1px solid #e5e9ef;
+
+    border-radius: 14px;
+
+    background: #fff;
+
+    box-shadow:
+        0 3px 12px rgba(15, 23, 42, .035);
+}
+
+
+/* SEARCH */
+
+.member-search {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+}
+
+.member-search > svg {
+    position: absolute;
+
+    left: 13px;
+
+    color: #9aa5b3;
+
+    pointer-events: none;
+}
+
+.member-search input {
+    width: 100%;
+
+    height: 42px;
+
+    padding:
+        0 38px
+        0 40px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dfe5eb;
+
+    border-radius: 9px;
+
+    background: #f9fafb;
+
+    color: #1f2937;
+
+    font-family: inherit;
+
+    font-size: .75rem;
+
+    outline: none;
+
+    transition:
+        border-color .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+}
+
+.member-search input::placeholder {
+    color: #a1a9b5;
+}
+
+.member-search input:focus {
+    background: #fff;
+
+    border-color: #7da4c7;
+
+    box-shadow:
+        0 0 0 3px rgba(43, 93, 141, .08);
+}
+
+
+/* CLEAR SEARCH */
+
+.clear-search {
+    position: absolute;
+
+    right: 9px;
+
+    width: 25px;
+    height: 25px;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    background: #e8edf2;
+
+    color: #687385;
+
+    font-size: 17px;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.clear-search:hover {
+    background: #dce3ea;
+
+    color: #374151;
+}
+
+
+/* SELECT */
+
+.member-filter-select {
+    min-width: 0;
+}
+
+.member-filter-select label {
+    display: block;
+
+    margin:
+        0 0 5px
+        2px;
+
+    color: #687385;
+
+    font-size: .61rem;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: .4px;
+}
+
+.member-filter-select select {
+    width: 100%;
+
+    height: 42px;
+
+    padding:
+        0 32px
+        0 11px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #dfe5eb;
+
+    border-radius: 9px;
+
+    background-color: #f9fafb;
+
+    color: #374151;
+
+    font-family: inherit;
+
+    font-size: .72rem;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    outline: none;
+}
+
+.member-filter-select select:focus {
+    background: #fff;
+
+    border-color: #7da4c7;
+
+    box-shadow:
+        0 0 0 3px rgba(43, 93, 141, .08);
+}
+
+
+/* RESET */
+
+.reset-member-filter {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    height: 42px;
+
+    padding: 0 14px;
+
+    border: 1px solid #dfe5eb;
+
+    border-radius: 9px;
+
+    background: #fff;
+
+    color: #687385;
+
+    font-family: inherit;
+
+    font-size: .7rem;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        color .2s ease;
+}
+
+.reset-member-filter:hover {
+    background: #f5f8fa;
+
+    border-color: #c6d2dd;
+
+    color: #2b5d8d;
+}
+
+.reset-member-filter span {
+    font-size: 15px;
+}
+
+
+/* FILTER INFO */
+
+.member-filter-info {
+    margin:
+        0 3px
+        14px;
+
+    color: #8a94a3;
+
+    font-size: .67rem;
+
+    font-weight: 600;
+}
+
+.member-filter-info strong {
+    color: #2b5d8d;
+}
+
+
+/* ==========================================================
+   NO RESULTS
+   ========================================================== */
+
+.member-no-results {
+    display: none;
+
+    padding: 45px 20px;
+
+    margin-bottom: 20px;
+
+    text-align: center;
+
+    border: 1px dashed #d7dee6;
+
+    border-radius: 15px;
+
+    background: #fafbfc;
+}
+
+.member-no-results.show {
+    display: block;
+}
+
+.member-no-results-icon {
+    margin-bottom: 8px;
+
+    font-size: 30px;
+}
+
+.member-no-results-title {
+    margin: 0 0 4px;
+
+    color: #374151;
+
+    font-size: .95rem;
+
+    font-weight: 800;
+}
+
+.member-no-results-text {
+    margin: 0;
+
+    color: #8a94a3;
+
+    font-size: .72rem;
+}
+
+
+/* ==========================================================
+   MEMBER GRID
+   ========================================================== */
+
+.member-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+
+    width: 100%;
+}
+
+
+/* ==========================================================
+   MEMBER CARD
+   ========================================================== */
+
+.member-card {
+    display: block;
+
+    width: 100%;
+
+    padding: 20px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e5e9ef;
+
+    border-radius: 17px;
+
+    background: #fff;
+
+    color: inherit;
+
+    text-decoration: none;
+
+    box-shadow:
+        0 4px 15px rgba(15, 23, 42, .045);
+
+    position: relative;
+
+    overflow: hidden;
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+}
+
+.member-card:hover {
+    transform: translateY(-3px);
+
+    border-color: #cbd9e7;
+
+    box-shadow:
+        0 12px 30px rgba(15, 23, 42, .09);
+}
+
+.member-card:focus-visible {
+    outline: 3px solid rgba(43, 93, 141, .2);
+
+    outline-offset: 2px;
+}
+
+
+/* FILTER HIDDEN */
+
+.member-card.filter-hidden {
+    display: none !important;
+}
+
+
+/* SHOW MORE HIDDEN */
+
+.member-card-hidden {
+    display: none;
+}
+
+.member-card-hidden.member-visible {
+    display: block;
+
+    animation:
+        memberFadeIn .3s ease;
+}
+
+@keyframes memberFadeIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0);
+    }
+
+}
+
+
+/* ==========================================================
+   CARD TOP
+   ========================================================== */
+
+.member-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+}
+
+
+/* ==========================================================
+   PROFILE
+   ========================================================== */
+
+.member-profile {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    min-width: 0;
+}
+
+
+/* ==========================================================
+   ROUND PROFILE IMAGE
+   ========================================================== */
+
+.member-avatar,
+.member-avatar-placeholder {
+    width: 64px;
+    height: 64px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    box-sizing: border-box;
+}
+
+
+/* IMAGE */
+
+.member-avatar {
+    display: block;
+
+    object-fit: cover;
+
+    border: 3px solid #e4edf5;
+
+    background: #f5f8fb;
+
+    box-shadow:
+        0 3px 10px rgba(15, 23, 42, .08);
+}
+
+
+/* PLACEHOLDER */
+
+.member-avatar-placeholder {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            #8fb8ff,
+            #5c8dce
+        );
+
+    border: 3px solid #e4edf5;
+
+    color: #fff;
+
+    font-size: 24px;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    box-shadow:
+        0 3px 10px rgba(15, 23, 42, .08);
+}
+
+
+/* ==========================================================
+   IDENTITY
+   ========================================================== */
+
+.member-identity {
+    min-width: 0;
+
+    overflow: hidden;
+}
+
+.member-name {
+    display: flex;
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 5px;
+
+    margin: 0 0 4px;
+
+    color: #1f2937;
+
+    font-size: 1rem;
+
+    line-height: 1.25;
+
+    font-weight: 800;
+}
+
+.member-username {
+    color: #8a94a3;
+
+    font-size: .72rem;
+
+    font-weight: 500;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* ==========================================================
+   TAGS
+   ========================================================== */
+
+.member-tag {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 3px 7px;
+
+    border-radius: 999px;
+
+    font-size: .55rem;
+
+    line-height: 1;
+
+    font-weight: 800;
+}
+
+.member-tag.you {
+    color: #2b5d8d;
+
+    background: #edf5fc;
+
+    border: 1px solid #d9e9f7;
+}
+
+.member-tag.admin {
+    color: #dc2626;
+
+    background: #fef2f2;
+
+    border: 1px solid #fee2e2;
+}
+
+
+/* ==========================================================
+   STATUS
+   ========================================================== */
+
+.member-status {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: .62rem;
+
+    font-weight: 800;
+
+    white-space: nowrap;
+
+    flex-shrink: 0;
+}
+
+.member-status.online {
+    color: #15803d;
+
+    background: #ecfdf3;
+
+    border: 1px solid #bbf7d0;
+}
+
+.member-status.offline {
+    color: #6b7280;
+
+    background: #f3f4f6;
+
+    border: 1px solid #e5e7eb;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    flex-shrink: 0;
+}
+
+.online .status-dot {
+    background: #16a34a;
+
+    box-shadow:
+        0 0 0 3px rgba(22, 163, 74, .1);
+}
+
+.offline .status-dot {
+    background: #9ca3af;
+}
+
+
+/* ==========================================================
+   CONTACT
+   ========================================================== */
+
+.member-contact {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    gap: 10px;
+
+    margin-bottom: 17px;
+
+    padding: 12px;
+
+    border-radius: 11px;
+
+    background: #f8fafc;
+
+    border: 1px solid #eef1f4;
+}
+
+.contact-line {
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+
+    color: #687385;
+
+    font-size: .7rem;
+}
+
+.contact-line svg {
+    flex-shrink: 0;
+
+    margin-right: 6px;
+
+    color: #9aa5b3;
+}
+
+.contact-text {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* ==========================================================
+   METRICS
+   ========================================================== */
+
+.member-metrics {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+
+    margin-bottom: 16px;
+}
+
+.metric {
+    min-width: 0;
+
+    padding: 12px;
+
+    border-radius: 11px;
+
+    background: #fff;
+
+    border: 1px solid #e7ebf0;
+}
+
+.metric-label {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #8a94a3;
+
+    font-size: .61rem;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: .45px;
+}
+
+.metric-value {
+    display: block;
+
+    color: #2b5d8d;
+
+    font-size: 1.25rem;
+
+    line-height: 1;
+
+    font-weight: 800;
+}
+
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
+.member-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding-top: 13px;
+
+    border-top: 1px solid #edf0f3;
+}
+
+.last-seen {
+    min-width: 0;
+
+    color: #8a94a3;
+
+    font-size: .65rem;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+.last-seen strong {
+    color: #667085;
+}
+
+.view-member {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    flex-shrink: 0;
+
+    color: #2b5d8d;
+
+    font-size: .68rem;
+
+    font-weight: 800;
+}
+
+.view-member-arrow {
+    transition:
+        transform .2s ease;
+}
+
+.member-card:hover .view-member-arrow {
+    transform:
+        translateX(3px);
+}
+
+
+/* ==========================================================
+   SHOW MORE / SHOW LESS
+   ========================================================== */
+
+.members-toggle-wrapper {
+    display: flex;
+
+    justify-content: center;
+
+    margin-top: 22px;
+}
+
+.members-toggle {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    min-width: 195px;
+
+    padding: 10px 18px;
+
+    border: 1px solid #d9e3ec;
+
+    border-radius: 10px;
+
+    background: #fff;
+
+    color: #2b5d8d;
+
+    font-size: .75rem;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 8px rgba(15, 23, 42, .04);
+
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.members-toggle:hover {
+    background: #f7fafc;
+
+    border-color: #b9cede;
+
+    transform:
+        translateY(-1px);
+
+    box-shadow:
+        0 5px 15px rgba(15, 23, 42, .07);
+}
+
+.members-toggle:active {
+    transform:
+        translateY(0);
+}
+
+.members-toggle:focus-visible {
+    outline: 3px solid rgba(43, 93, 141, .18);
+
+    outline-offset: 2px;
+}
+
+.toggle-arrow {
+    display: inline-block;
+
+    font-size: 11px;
+
+    transition:
+        transform .25s ease;
+}
+
+.members-toggle.expanded .toggle-arrow {
+    transform:
+        rotate(180deg);
+}
+
+
+/* ==========================================================
+   EMPTY STATE
+   ========================================================== */
+
+.members-empty {
+    padding: 55px 20px;
+
+    text-align: center;
+
+    border: 1px dashed #d8dee6;
+
+    border-radius: 16px;
+
+    background: #fafbfc;
+}
+
+.members-empty-icon {
+    margin-bottom: 10px;
+
+    font-size: 34px;
+}
+
+.members-empty-title {
+    margin: 0 0 5px;
+
+    color: #374151;
+
+    font-size: 1rem;
+
+    font-weight: 800;
+}
+
+.members-empty-text {
+    margin: 0;
+
+    color: #8a94a3;
+
+    font-size: .75rem;
+}
+
+
+/* ==========================================================
+   GRAND TOTAL
+   ========================================================== */
+
+.grand-total {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 15px;
+
+    margin-top: 24px;
+
+    padding: 20px;
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2b5d8d,
+            #1f456c
+        );
+
+    color: #fff;
+
+    box-shadow:
+        0 8px 25px rgba(31, 69, 108, .15);
+}
+
+.grand-total-item {
+    min-width: 0;
+
+    text-align: center;
+}
+
+.grand-total-number {
+    display: block;
+
+    margin-bottom: 3px;
+
+    font-size: 1.35rem;
+
+    font-weight: 800;
+}
+
+.grand-total-label {
+    display: block;
+
+    color: rgba(255, 255, 255, .7);
+
+    font-size: .61rem;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: .5px;
+}
+
+
+/* ==========================================================
+   TABLET
+   ========================================================== */
+
+@media (max-width: 1000px) {
+
+    .member-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+@media (max-width: 900px) {
+
+    .member-filter {
+        grid-template-columns:
+            minmax(0, 1fr)
+            1fr
+            1fr;
+    }
+
+    .member-search {
+        grid-column: 1 / -1;
+    }
+
+    .reset-member-filter {
+        width: 100%;
+    }
+
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media (max-width: 600px) {
+
+    .members-page {
+        padding: 12px;
+    }
+
+
+    /* HEADER */
+
+    .members-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        padding: 20px;
+    }
+
+    .members-header-count {
+        align-self: flex-start;
+    }
+
+
+    /* SUMMARY */
+
+    .summary-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 8px;
+    }
+
+    .summary-card {
+        display: block;
+
+        padding: 13px 8px;
+
+        text-align: center;
+    }
+
+    .summary-icon {
+        width: 36px;
+        height: 36px;
+
+        margin: 0 auto 8px;
+
+        font-size: 16px;
+    }
+
+    .summary-number {
+        font-size: 1.05rem;
+    }
+
+    .summary-label {
+        font-size: .5rem;
+
+        letter-spacing: .2px;
+    }
+
+
+    /* FILTER */
+
+    .member-filter {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+
+        padding: 12px;
+    }
+
+    .member-search {
+        grid-column: auto;
+    }
+
+    .member-filter-select {
+        width: 100%;
+    }
+
+    .reset-member-filter {
+        width: 100%;
+    }
+
+
+    /* MEMBER CARD */
+
+    .member-card {
+        padding: 15px;
+    }
+
+    .member-avatar,
+    .member-avatar-placeholder {
+        width: 56px;
+        height: 56px;
+    }
+
+    .member-card-top {
+        margin-bottom: 14px;
+    }
+
+
+    /* CONTACT */
+
+    .member-contact {
+        grid-template-columns: 1fr;
+
+        gap: 7px;
+    }
+
+
+    /* TOTAL */
+
+    .grand-total {
+        padding: 15px 8px;
+
+        gap: 8px;
+    }
+
+    .grand-total-number {
+        font-size: 1.05rem;
+    }
+
+    .grand-total-label {
+        font-size: .5rem;
+    }
+
+}
+
+
+/* ==========================================================
+   SMALL PHONE
+   ========================================================== */
+
+@media (max-width: 430px) {
+
+    .member-card-top {
+        flex-direction: column;
+    }
+
+    .member-status {
+        align-self: flex-start;
+    }
+
+    .member-card-footer {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 8px;
+    }
+
+    .view-member {
+        align-self: flex-end;
+    }
+
+}
+
+
+/* ==========================================================
+   VERY SMALL PHONE
+   ========================================================== */
+
+@media (max-width: 380px) {
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-card {
+        display: flex;
+
+        text-align: left;
+    }
+
+    .summary-icon {
+        margin: 0;
+    }
+
+    .member-profile {
+        gap: 10px;
+    }
+
+    .member-name {
+        font-size: .9rem;
+    }
+
+}
+
+
+/* ==========================================================
+   PRINT
+   ========================================================== */
+
+@media print {
+
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    .members-page {
+        max-width: none;
+
+        padding: 0;
+    }
+
+    .member-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .member-card-hidden {
+        display: block !important;
+    }
+
+    .member-card.filter-hidden {
+        display: none !important;
+    }
+
+    .member-card {
+        box-shadow: none;
+
+        border: 1px solid #ccc;
+
+        break-inside: avoid;
+    }
+
+    .grand-total {
+        box-shadow: none;
+    }
+
+}
+
+</style>
+
+
+<!-- ==========================================================
+     MEMBERS PAGE
+     ========================================================== -->
+
+<div class="members-page">
+
+
+    <!-- ======================================================
+         HEADER
+         ====================================================== -->
+
+    <div class="members-header">
+
+        <div class="members-header-left">
+
+            <h1 class="members-header-title">
+
+                <span>👥</span>
+
+                <span>
+                    Team Members
+                </span>
+
+            </h1>
+
+            <p class="members-header-subtitle">
+                View your collection team and their activity
+            </p>
+
+        </div>
+
+
+        <div class="members-header-count">
+
+            {{ total_members }}
+
+            {% if total_members == 1 %}
+                Member
+            {% else %}
+                Members
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         SUMMARY
+         ====================================================== -->
+
+    <div class="summary-grid no-print">
+
+
+        <!-- MEMBERS -->
+
+        <div class="summary-card summary-members">
+
+            <div class="summary-icon">
+                👥
+            </div>
+
+            <div class="summary-info">
+
+                <span class="summary-number">
+                    {{ total_members }}
+                </span>
+
+                <span class="summary-label">
+                    Total Members
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECORDS -->
+
+        <div class="summary-card summary-records">
+
+            <div class="summary-icon">
+                📋
+            </div>
+
+            <div class="summary-info">
+
+                <span class="summary-number">
+                    {{ grand_total_records }}
+                </span>
+
+                <span class="summary-label">
+                    Total Records
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- SAMPLES -->
+
+        <div class="summary-card summary-samples">
+
+            <div class="summary-icon">
+                🧪
+            </div>
+
+            <div class="summary-info">
+
+                <span class="summary-number">
+                    {{ grand_total_patients }}
+                </span>
+
+                <span class="summary-label">
+                    Total Samples
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         SECTION HEADER
+         ====================================================== -->
+
+    <div class="members-section-header">
+
+        <div>
+
+            <h2 class="members-section-title">
+                Members
+            </h2>
+
+            <p class="members-section-description">
+                Search and filter your collection team
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         SEARCH + FILTER
+         ====================================================== -->
+
+    <div class="member-filter no-print">
+
+
+        <!-- SEARCH -->
+
+        <div class="member-search">
+
+            <svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+            >
+
+                <circle
+                    cx="11"
+                    cy="11"
+                    r="8"
+                ></circle>
+
+                <path
+                    d="m21 21-4.3-4.3"
+                ></path>
+
+            </svg>
+
+
+            <input
+                type="search"
+                id="memberSearch"
+                placeholder="Search member, username, email, phone..."
+                autocomplete="off"
+            >
+
+
+            <button
+                type="button"
+                id="clearMemberSearch"
+                class="clear-search"
+                aria-label="Clear search"
+                title="Clear search"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div class="member-filter-select">
+
+            <label for="memberStatusFilter">
+                Status
+            </label>
+
+            <select id="memberStatusFilter">
+
+                <option value="all">
+                    All Status
+                </option>
+
+                <option value="online">
+                    Online
+                </option>
+
+                <option value="offline">
+                    Offline
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- ROLE -->
+
+        <div class="member-filter-select">
+
+            <label for="memberRoleFilter">
+                Role
+            </label>
+
+            <select id="memberRoleFilter">
+
+                <option value="all">
+                    All Roles
+                </option>
+
+                <option value="admin">
+                    Admin
+                </option>
+
+                <option value="collector">
+                    Collector
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- RESET -->
+
+        <button
+            type="button"
+            id="resetMemberFilters"
+            class="reset-member-filter"
+        >
+
+            <span>↻</span>
+
+            Reset
+
+        </button>
+
+    </div>
+
+
+    <!-- ======================================================
+         FILTER RESULT
+         ====================================================== -->
+
+    <div
+        id="memberFilterInfo"
+        class="member-filter-info no-print"
+    >
+        Showing all members
+    </div>
+
+
+    <!-- ======================================================
+         MEMBERS - FIXED PROFILE PICTURES
+         ====================================================== -->
+
+    {% if member_data %}
+
+    <div
+        class="member-grid"
+        id="memberGrid"
+    >
+
+
+        {% for m in member_data %}
+
+
+        <!-- ==================================================
+             MEMBER CARD
+             ================================================== -->
+
+        <a
+            href="/member/{{ m.id }}/details"
+            class="
+                member-card
+                {% if loop.index > 4 %}
+                    member-card-hidden
+                {% endif %}
+            "
+            data-member-index="{{ loop.index }}"
+            data-name="{{ m.full_name|lower }}"
+            data-username="{{ m.username|lower }}"
+            data-email="{{ m.email|lower }}"
+            data-phone="{{ (m.phone or '')|lower }}"
+            data-role="{{ (m.role or '')|lower }}"
+            data-status="{% if m.is_online %}online{% else %}offline{% endif %}"
+        >
+
+
+            <!-- ==============================================
+                 PROFILE + STATUS - FIXED FOR CLOUDINARY
+                 ============================================== -->
+
+            <div class="member-card-top">
+
+
+                <!-- PROFILE -->
+
+                <div class="member-profile">
+
+
+                    {% if m.profile_picture
+                        and m.profile_picture != 'default.png' %}
+
+                        {% if m.profile_picture.startswith('http') %}
+                            <!-- Cloudinary URL - use directly -->
+                            <img
+                                src="{{ m.profile_picture }}?t={{ range(1, 100) | random }}"
+                                class="member-avatar"
+                                alt="{{ m.full_name }}"
+                                loading="lazy"
+                            >
+                        {% else %}
+                            <!-- Local file - use url_for -->
+                            <img
+                                src="{{ url_for('uploaded_file', filename=m.profile_picture) }}?t={{ range(1, 100) | random }}"
+                                class="member-avatar"
+                                alt="{{ m.full_name }}"
+                                loading="lazy"
+                            >
+                        {% endif %}
+
+                    {% else %}
+
+
+                    <!-- FALLBACK -->
+
+                    <div
+                        class="member-avatar-placeholder"
+                        aria-label="{{ m.full_name }}"
+                    >
+                        {{ m.full_name[:1] }}
+                    </div>
+
+
+                    {% endif %}
+
+
+                    <!-- IDENTITY -->
+
+                    <div class="member-identity">
+
+
+                        <!-- NAME -->
+
+                        <div class="member-name">
+
+                            <span>
+                                {{ m.full_name }}
+                            </span>
+
+
+                            {% if m.id == session.user_id %}
+
+                            <span class="member-tag you">
+                                You
+                            </span>
+
+                            {% endif %}
+
+
+                            {% if m.role|lower == 'admin' %}
+
+                            <span class="member-tag admin">
+                                Admin
+                            </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- USERNAME -->
+
+                        <div class="member-username">
+
+                            @{{ m.username }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                {% if m.is_online %}
+
+                <div class="member-status online">
+
+                    <span class="status-dot"></span>
+
+                    Online
+
+                </div>
+
+                {% else %}
+
+                <div class="member-status offline">
+
+                    <span class="status-dot"></span>
+
+                    Offline
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ==================================================
+                 CONTACT
+                 ================================================== -->
+
+            <div class="member-contact">
+
+
+                <!-- EMAIL -->
+
+                <div
+                    class="contact-line"
+                    title="{{ m.email }}"
+                >
+
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true"
+                    >
+
+                        <path
+                            d="
+                            M4 4h16
+                            c1.1 0 2 .9 2 2v12
+                            c0 1.1-.9 2-2 2H4
+                            c-1.1 0-2-.9-2-2V6
+                            c0-1.1.9-2 2-2z
+                            "
+                        />
+
+                        <polyline
+                            points="22,6 12,13 2,6"
+                        />
+
+                    </svg>
+
+
+                    <span class="contact-text">
+                        {{ m.email }}
+                    </span>
+
+                </div>
+
+
+                <!-- PHONE -->
+
+                {% if m.phone %}
+
+                <div
+                    class="contact-line"
+                    title="{{ m.phone }}"
+                >
+
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true"
+                    >
+
+                        <path
+                            d="
+                            M22 16.92v3
+                            a2 2 0 0 1-2.18 2
+                            19.79 19.79 0 0 1-8.63-3.07
+                            19.5 19.5 0 0 1-6-6
+                            19.79 19.79 0 0 1-3.07-8.67
+                            A2 2 0 0 1 4.11 2h3
+                            a2 2 0 0 1 2 1.72
+                            12.84 12.84 0 0 0 .7 2.81
+                            2 2 0 0 1-.45 2.11L8.09 9.91
+                            a16 16 0 0 0 6 6l1.27-1.27
+                            a2 2 0 0 1 2.11-.45
+                            12.84 12.84 0 0 0 2.81.7
+                            A2 2 0 0 1 22 16.92z
+                            "
+                        />
+
+                    </svg>
+
+
+                    <span class="contact-text">
+                        {{ m.phone }}
+                    </span>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ==================================================
+                 METRICS
+                 ================================================== -->
+
+            <div class="member-metrics">
+
+
+                <!-- RECORDS -->
+
+                <div class="metric">
+
+                    <span class="metric-label">
+                        Collection Records
+                    </span>
+
+                    <span class="metric-value">
+                        {{ m.record_count }}
+                    </span>
+
+                </div>
+
+
+                <!-- SAMPLES -->
+
+                <div class="metric">
+
+                    <span class="metric-label">
+                        Samples Collected
+                    </span>
+
+                    <span class="metric-value">
+                        {{ m.total_patients }}
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 FOOTER
+                 ================================================== -->
+
+            <div class="member-card-footer">
+
+
+                {% if m.is_online %}
+
+                <div class="last-seen">
+                    Active now
+                </div>
+
+                {% else %}
+
+                <div
+                    class="last-seen"
+                    title="Last seen: {{ m.last_seen }}"
+                >
+
+                    Last seen:
+
+                    <strong>
+                        {{ m.last_seen }}
+                    </strong>
+
+                </div>
+
+                {% endif %}
+
+
+                <div class="view-member">
+
+                    View Details
+
+                    <span
+                        class="view-member-arrow"
+                        aria-hidden="true"
+                    >
+                        →
+                    </span>
+
+                </div>
+
+            </div>
+
+        </a>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- ======================================================
+         NO SEARCH RESULTS
+         ====================================================== -->
+
+    <div
+        id="memberNoResults"
+        class="member-no-results"
+    >
+
+        <div class="member-no-results-icon">
+            🔍
+        </div>
+
+        <h3 class="member-no-results-title">
+            No Members Found
+        </h3>
+
+        <p class="member-no-results-text">
+            Try changing your search or filters.
+        </p>
+
+    </div>
+
+
+    <!-- ======================================================
+         SHOW MORE / LESS
+         ====================================================== -->
+
+    {% if member_data|length > 4 %}
+
+    <div
+        class="members-toggle-wrapper no-print"
+    >
+
+        <button
+            type="button"
+            id="membersToggle"
+            class="members-toggle"
+            aria-expanded="false"
+            aria-controls="memberGrid"
+        >
+
+            <span id="membersToggleText">
+
+                Show More
+                ({{ member_data|length - 4 }} more)
+
+            </span>
+
+
+            <span
+                id="membersToggleArrow"
+                class="toggle-arrow"
+                aria-hidden="true"
+            >
+                ▼
+            </span>
+
+        </button>
+
+    </div>
+
+    {% endif %}
+
+
+    {% else %}
+
+
+    <!-- ======================================================
+         EMPTY STATE
+         ====================================================== -->
+
+    <div class="members-empty">
+
+        <div class="members-empty-icon">
+            👥
+        </div>
+
+        <h3 class="members-empty-title">
+            No Members Found
+        </h3>
+
+        <p class="members-empty-text">
+            There are currently no members to display.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ======================================================
+         GRAND TOTAL
+         ====================================================== -->
+
+    <div class="grand-total">
+
+
+        <div class="grand-total-item">
+
+            <span class="grand-total-number">
+                {{ total_members }}
+            </span>
+
+            <span class="grand-total-label">
+                Total Members
+            </span>
+
+        </div>
+
+
+        <div class="grand-total-item">
+
+            <span class="grand-total-number">
+                {{ grand_total_records }}
+            </span>
+
+            <span class="grand-total-label">
+                Grand Total Records
+            </span>
+
+        </div>
+
+
+        <div class="grand-total-item">
+
+            <span class="grand-total-number">
+                {{ grand_total_patients }}
+            </span>
+
+            <span class="grand-total-label">
+                Grand Total Samples
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================================
+     MEMBER SEARCH / FILTER / SHOW MORE JAVASCRIPT
+     ========================================================== -->
+
+<script>
+
+(function () {
+
+    const INITIAL_VISIBLE = 4;
+
+    let expanded = false;
+
+
+    /* ========================================================
+       ELEMENTS
+       ======================================================== */
+
+    const grid =
+        document.getElementById(
+            'memberGrid'
+        );
+
+    const searchInput =
+        document.getElementById(
+            'memberSearch'
+        );
+
+    const statusFilter =
+        document.getElementById(
+            'memberStatusFilter'
+        );
+
+    const roleFilter =
+        document.getElementById(
+            'memberRoleFilter'
+        );
+
+    const resetButton =
+        document.getElementById(
+            'resetMemberFilters'
+        );
+
+    const clearButton =
+        document.getElementById(
+            'clearMemberSearch'
+        );
+
+    const filterInfo =
+        document.getElementById(
+            'memberFilterInfo'
+        );
+
+    const noResults =
+        document.getElementById(
+            'memberNoResults'
+        );
+
+    const toggleButton =
+        document.getElementById(
+            'membersToggle'
+        );
+
+    const toggleText =
+        document.getElementById(
+            'membersToggleText'
+        );
+
+
+    if (!grid) {
+        return;
+    }
+
+
+    /* ========================================================
+       GET CARDS
+       ======================================================== */
+
+    function getCards() {
+
+        return Array.from(
+            grid.querySelectorAll(
+                '.member-card'
+            )
+        );
+
+    }
+
+
+    /* ========================================================
+       CHECK IF FILTER ACTIVE
+       ======================================================== */
+
+    function isFiltering() {
+
+        const search =
+            searchInput
+                ? searchInput.value
+                    .trim()
+                    .toLowerCase()
+                : '';
+
+        const status =
+            statusFilter
+                ? statusFilter.value
+                : 'all';
+
+        const role =
+            roleFilter
+                ? roleFilter.value
+                : 'all';
+
+
+        return (
+            search !== '' ||
+            status !== 'all' ||
+            role !== 'all'
+        );
+
+    }
+
+
+    /* ========================================================
+       UPDATE SHOW MORE BUTTON
+       ======================================================== */
+
+    function updateToggleButton() {
+
+        if (!toggleButton) {
+            return;
+        }
+
+
+        if (isFiltering()) {
+
+            toggleButton.style.display =
+                'none';
+
+            return;
+
+        }
+
+
+        toggleButton.style.display =
+            'inline-flex';
+
+
+        const cards =
+            getCards();
+
+
+        const hiddenCount =
+            Math.max(
+                0,
+                cards.length - INITIAL_VISIBLE
+            );
+
+
+        if (hiddenCount <= 0) {
+
+            toggleButton.style.display =
+                'none';
+
+            return;
+
+        }
+
+
+        if (expanded) {
+
+            toggleText.textContent =
+                'Show Less';
+
+            toggleButton.classList.add(
+                'expanded'
+            );
+
+            toggleButton.setAttribute(
+                'aria-expanded',
+                'true'
+            );
+
+        } else {
+
+            toggleText.textContent =
+                'Show More (' +
+                hiddenCount +
+                ' more)';
+
+            toggleButton.classList.remove(
+                'expanded'
+            );
+
+            toggleButton.setAttribute(
+                'aria-expanded',
+                'false'
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       APPLY FILTER
+       ======================================================== */
+
+    function applyFilters() {
+
+        const cards =
+            getCards();
+
+
+        const search =
+            searchInput
+                ? searchInput.value
+                    .trim()
+                    .toLowerCase()
+                : '';
+
+
+        const status =
+            statusFilter
+                ? statusFilter.value
+                    .toLowerCase()
+                : 'all';
+
+
+        const role =
+            roleFilter
+                ? roleFilter.value
+                    .toLowerCase()
+                : 'all';
+
+
+        let visibleCount = 0;
+
+
+        cards.forEach(
+            function (card) {
+
+                const name =
+                    card.dataset.name || '';
+
+                const username =
+                    card.dataset.username || '';
+
+                const email =
+                    card.dataset.email || '';
+
+                const phone =
+                    card.dataset.phone || '';
+
+                const memberRole =
+                    card.dataset.role || '';
+
+                const memberStatus =
+                    card.dataset.status || '';
+
+
+                /* SEARCH */
+
+                const matchesSearch =
+                    !search ||
+                    name.includes(search) ||
+                    username.includes(search) ||
+                    email.includes(search) ||
+                    phone.includes(search);
+
+
+                /* STATUS */
+
+                const matchesStatus =
+                    status === 'all' ||
+                    memberStatus === status;
+
+
+                /* ROLE */
+
+                let matchesRole = true;
+
+
+                if (role !== 'all') {
+
+                    matchesRole =
+                        memberRole === role;
+
+                }
+
+
+                const matches =
+                    matchesSearch &&
+                    matchesStatus &&
+                    matchesRole;
+
+
+                if (matches) {
+
+                    card.classList.remove(
+                        'filter-hidden'
+                    );
+
+                    visibleCount++;
+
+
+                    /*
+                     * When filtering, reveal every
+                     * matching member, even if it was
+                     * originally hidden by Show More.
+                     */
+
+                    if (isFiltering()) {
+
+                        card.classList.add(
+                            'member-visible'
+                        );
+
+                    }
+
+                } else {
+
+                    card.classList.add(
+                        'filter-hidden'
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* ====================================================
+           NORMAL VIEW
+           ==================================================== */
+
+        if (!isFiltering()) {
+
+            cards.forEach(
+                function (card, index) {
+
+                    card.classList.remove(
+                        'filter-hidden'
+                    );
+
+
+                    if (
+                        index < INITIAL_VISIBLE
+                    ) {
+
+                        card.classList.remove(
+                            'member-visible'
+                        );
+
+                    } else {
+
+                        if (expanded) {
+
+                            card.classList.add(
+                                'member-visible'
+                            );
+
+                        } else {
+
+                            card.classList.remove(
+                                'member-visible'
+                            );
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+            visibleCount =
+                cards.length;
+
+        }
+
+
+        /* ====================================================
+           SEARCH CLEAR BUTTON
+           ==================================================== */
+
+        if (
+            clearButton &&
+            search
+        ) {
+
+            clearButton.style.display =
+                'flex';
+
+        } else if (clearButton) {
+
+            clearButton.style.display =
+                'none';
+
+        }
+
+
+        /* ====================================================
+           RESULT TEXT
+           ==================================================== */
+
+        if (filterInfo) {
+
+            if (isFiltering()) {
+
+                filterInfo.innerHTML =
+                    'Showing <strong>' +
+                    visibleCount +
+                    '</strong> of <strong>' +
+                    cards.length +
+                    '</strong> members';
+
+            } else {
+
+                filterInfo.innerHTML =
+                    'Showing all <strong>' +
+                    cards.length +
+                    '</strong> members';
+
+            }
+
+        }
+
+
+        /* ====================================================
+           NO RESULTS
+           ==================================================== */
+
+        if (noResults) {
+
+            if (
+                isFiltering() &&
+                visibleCount === 0
+            ) {
+
+                noResults.classList.add(
+                    'show'
+                );
+
+                grid.style.display =
+                    'none';
+
+            } else {
+
+                noResults.classList.remove(
+                    'show'
+                );
+
+                grid.style.display =
+                    '';
+
+            }
+
+        }
+
+
+        updateToggleButton();
+
+    }
+
+
+    /* ========================================================
+       SHOW MORE / SHOW LESS
+       ======================================================== */
+
+    if (toggleButton) {
+
+        toggleButton.addEventListener(
+            'click',
+            function () {
+
+                expanded =
+                    !expanded;
+
+
+                const cards =
+                    getCards();
+
+
+                cards.forEach(
+                    function (card, index) {
+
+                        if (
+                            index < INITIAL_VISIBLE
+                        ) {
+                            return;
+                        }
+
+
+                        if (expanded) {
+
+                            card.classList.add(
+                                'member-visible'
+                            );
+
+                        } else {
+
+                            card.classList.remove(
+                                'member-visible'
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                updateToggleButton();
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       SEARCH
+       ======================================================== */
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            'input',
+            function () {
+
+                applyFilters();
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       STATUS
+       ======================================================== */
+
+    if (statusFilter) {
+
+        statusFilter.addEventListener(
+            'change',
+            function () {
+
+                applyFilters();
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       ROLE
+       ======================================================== */
+
+    if (roleFilter) {
+
+        roleFilter.addEventListener(
+            'change',
+            function () {
+
+                applyFilters();
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       CLEAR SEARCH
+       ======================================================== */
+
+    if (clearButton) {
+
+        clearButton.addEventListener(
+            'click',
+            function () {
+
+                searchInput.value = '';
+
+                searchInput.focus();
+
+                applyFilters();
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       RESET ALL FILTERS
+       ======================================================== */
+
+    if (resetButton) {
+
+        resetButton.addEventListener(
+            'click',
+            function () {
+
+                if (searchInput) {
+
+                    searchInput.value =
+                        '';
+
+                }
+
+
+                if (statusFilter) {
+
+                    statusFilter.value =
+                        'all';
+
+                }
+
+
+                if (roleFilter) {
+
+                    roleFilter.value =
+                        'all';
+
+                }
+
+
+                expanded = false;
+
+
+                applyFilters();
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       INITIALIZE
+       ======================================================== */
+
+    applyFilters();
+
+
+})();
+
+</script>
+
+
+<!-- ==========================================================
+     PRINT
+     ========================================================== -->
+
+<script>
+
+window.addEventListener(
+    'beforeprint',
+    function () {
+
+        document
+            .querySelectorAll(
+                '.member-card-hidden'
+            )
+            .forEach(
+                function (card) {
+
+                    card.classList.add(
+                        'member-visible'
+                    );
+
+                }
+            );
+
+    }
+);
+
+
+window.addEventListener(
+    'afterprint',
+    function () {
+
+        const toggleButton =
+            document.getElementById(
+                'membersToggle'
+            );
+
+
+        if (
+            toggleButton &&
+            toggleButton.getAttribute(
+                'aria-expanded'
+            ) !== 'true'
+        ) {
+            document
+                .querySelectorAll(
+                    '.member-card-hidden'
+                )
+                .forEach(
+                    function (card) {
+
+                        card.classList.remove(
+                            'member-visible'
+                        );
+                    }
+                );
+        }
+    }
+);
+</script>
+{% endblock %}

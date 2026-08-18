@@ -1,0 +1,2314 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - CMS{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ============================================================
+       ROOT – refined color palette & shadows
+       ============================================================ */
+    :root {
+        --cml-blue: #2b5d8d;
+        --cml-dark-blue: #1a3f5f;
+        --cml-light-blue: #eef4fa;
+        --cml-glow: rgba(43, 93, 141, 0.15);
+        --page-bg: #f4f7fc;
+        --card-bg: #ffffff;
+        --text-primary: #0b1a2b;
+        --text-secondary: #2d3f53;
+        --text-muted: #6b7a8f;
+        --border-light: #e9edf4;
+        --border-focus: #2b5d8d;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+        --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.08);
+        --shadow-xl: 0 24px 80px rgba(0, 0, 0, 0.12);
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        background: var(--page-bg);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: var(--text-primary);
+    }
+
+    /* ============================================================
+       STATISTICS CARDS – glassy, elevated
+       ============================================================ */
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        padding: 22px 24px;
+        border-radius: var(--radius-md);
+        background: var(--card-bg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(2px);
+        transition: transform var(--transition), box-shadow var(--transition);
+        min-height: 130px;
+        display: flex;
+        align-items: center;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card .stat-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+    }
+
+    .stat-card .stat-label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+
+    .stat-card .stat-value {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--text-primary);
+        letter-spacing: -0.5px;
+    }
+
+    .stat-card .stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        font-size: 24px;
+        flex-shrink: 0;
+        background: var(--cml-light-blue);
+        color: var(--cml-blue);
+        transition: transform var(--transition);
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.05);
+    }
+
+    .stat-card .stat-bg-accent {
+        position: absolute;
+        right: -20px;
+        bottom: -30px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        opacity: 0.06;
+        pointer-events: none;
+        background: var(--cml-blue);
+    }
+
+    /* colored variants */
+    .stat-card.blue .stat-icon {
+        background: #e0edfc;
+        color: #1a5a8a;
+    }
+    .stat-card.green .stat-icon {
+        background: #e3f5ec;
+        color: #0b7a4a;
+    }
+    .stat-card.purple .stat-icon {
+        background: #ede7f8;
+        color: #6d3b9b;
+    }
+    .stat-card.amber .stat-icon {
+        background: #fdf0e0;
+        color: #b45f1a;
+    }
+
+    /* ============================================================
+       PAGE HEADER – cleaner spacing
+       ============================================================ */
+    .page-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px 24px;
+        margin-bottom: 32px;
+    }
+
+    .page-header h3 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .page-header h3 span {
+        background: var(--cml-light-blue);
+        color: var(--cml-blue);
+        font-size: 18px;
+        padding: 4px 12px;
+        border-radius: 40px;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        margin: 4px 0 0;
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+
+    .page-header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .btn-primary-custom,
+    .btn-report {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 22px;
+        border: 0;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all var(--transition);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue));
+    }
+
+    .btn-report {
+        background: linear-gradient(135deg, #0b7a4a, #10b981);
+    }
+
+    .btn-primary-custom:hover,
+    .btn-report:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        color: #fff;
+    }
+
+    .btn-primary-custom:active,
+    .btn-report:active {
+        transform: translateY(0);
+    }
+
+    /* ============================================================
+       MEMBER MANAGEMENT CARD – elevated, clean
+       ============================================================ */
+    .member-management-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        overflow: hidden;
+        transition: box-shadow var(--transition);
+    }
+
+    .member-management-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* ----- header ----- */
+    .member-card-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px 20px;
+        padding: 20px 28px;
+        background: linear-gradient(135deg, #fafcff, #f2f7fe);
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .member-title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .member-title-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue));
+        color: #fff;
+        font-size: 22px;
+        box-shadow: 0 4px 14px rgba(43, 93, 141, 0.25);
+        flex-shrink: 0;
+    }
+
+    .member-card-header h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+
+    .member-card-header p {
+        margin: 2px 0 0;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .member-card-header .btn-primary-custom {
+        flex-shrink: 0;
+    }
+
+    /* ----- toolbar ----- */
+    .member-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 16px;
+        padding: 14px 28px;
+        background: #fafbfe;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .member-search {
+        position: relative;
+        flex: 1 1 260px;
+        max-width: 360px;
+    }
+
+    .member-search .search-icon {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        transform: translateY(-50%);
+        color: #9aa8b9;
+        font-size: 15px;
+        pointer-events: none;
+    }
+
+    .member-search input {
+        width: 100%;
+        padding: 10px 14px 10px 42px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        background: #fff;
+        font-size: 13px;
+        color: var(--text-primary);
+        transition: all var(--transition);
+        outline: none;
+    }
+
+    .member-search input:focus {
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 4px var(--cml-glow);
+        background: #fff;
+    }
+
+    .member-search input::placeholder {
+        color: #b0bec5;
+    }
+
+    .member-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .member-count strong {
+        color: var(--cml-blue);
+        font-weight: 700;
+    }
+
+    /* ============================================================
+       MEMBER TABLE – fully responsive, sticky header, sleek + RESIZABLE COLUMNS
+       ============================================================ */
+
+    .member-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0;
+        margin: 0;
+        position: relative;
+    }
+
+    /* subtle scroll shadow hint */
+    .member-table-wrapper::after {
+        content: '';
+        position: sticky;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        pointer-events: none;
+        background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.01));
+        z-index: 2;
+    }
+
+    .member-table {
+        width: 100%;
+        min-width: 1020px;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+        font-size: 13px;
+    }
+
+    /* column widths – these are used as fallback; JS will override */
+    .member-table .col-member {
+        width: 18%;
+        min-width: 170px;
+    }
+    .member-table .col-email {
+        width: 14%;
+        min-width: 130px;
+    }
+    .member-table .col-phone {
+        width: 10%;
+        min-width: 90px;
+    }
+    .member-table .col-role {
+        width: 8%;
+        min-width: 70px;
+    }
+    .member-table .col-status {
+        width: 9%;
+        min-width: 80px;
+    }
+    .member-table .col-records {
+        width: 7%;
+        min-width: 60px;
+        text-align: center;
+    }
+    .member-table .col-samples {
+        width: 7%;
+        min-width: 60px;
+        text-align: center;
+    }
+    .member-table .col-specimens {
+        width: 8%;
+        min-width: 70px;
+        text-align: center;
+    }
+    .member-table .col-actions {
+        width: 19%;
+        min-width: 190px;
+        text-align: right;
+    }
+
+    /* ----- header – sticky, subtle ----- */
+    .member-table thead th {
+        padding: 14px 14px;
+        background: #f8fafd;
+        color: #5a6d82;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--border-light);
+        text-align: left;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        transition: background var(--transition);
+        /* for resizer */
+        position: relative;
+        user-select: none;
+    }
+
+    .member-table thead th.text-center {
+        text-align: center;
+    }
+
+    .member-table thead th:last-child {
+        text-align: right;
+    }
+
+    /* ----- resizer handle ----- */
+    .member-table thead th .resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 8px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 5;
+        transition: background 0.15s;
+    }
+    .member-table thead th .resizer:hover,
+    .member-table thead th .resizer.active {
+        background: var(--cml-blue);
+        opacity: 0.35;
+    }
+    .member-table thead th:last-child .resizer {
+        display: none; /* no need to resize the last column */
+    }
+
+    /* ----- body rows ----- */
+    .member-table tbody td {
+        padding: 13px 14px;
+        border-bottom: 1px solid #f0f3f8;
+        color: var(--text-secondary);
+        vertical-align: middle;
+        line-height: 1.4;
+        word-break: break-word;
+        background: #fff;
+        transition: background var(--transition);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .member-table tbody tr {
+        transition: background var(--transition);
+    }
+
+    .member-table tbody tr:hover td {
+        background: #f6faff;
+    }
+
+    .member-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* ----- member info (avatar + name) ----- */
+    .member-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        overflow: hidden;
+    }
+
+    .profile-img-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2.5px solid #e9edf4;
+        background: #eef2f6;
+        flex-shrink: 0;
+        transition: border-color var(--transition);
+    }
+
+    .member-row:hover .profile-img-sm {
+        border-color: var(--cml-blue);
+    }
+
+    .member-name {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 13.5px;
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .member-username {
+        font-size: 11px;
+        color: #94a8bb;
+        margin-top: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ----- email (truncated) ----- */
+    .email-cell {
+        max-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text-secondary);
+    }
+
+    /* ----- badges – refined ----- */
+    .role-badge,
+    .status-badge,
+    .records-badge,
+    .samples-badge,
+    .sampling-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.4;
+        white-space: nowrap;
+        gap: 4px;
+        letter-spacing: 0.2px;
+    }
+
+    .role-admin {
+        background: #fee9e7;
+        color: #b33a34;
+    }
+
+    .role-member {
+        background: #eef2f6;
+        color: #4a5b6e;
+    }
+
+    .status-active {
+        background: #e1f5ec;
+        color: #0b7a4a;
+    }
+
+    .status-active::before {
+        content: "●";
+        font-size: 8px;
+        margin-right: 3px;
+        color: #0b7a4a;
+    }
+
+    .status-inactive {
+        background: #fee9e7;
+        color: #b33a34;
+    }
+
+    .status-inactive::before {
+        content: "●";
+        font-size: 8px;
+        margin-right: 3px;
+        color: #b33a34;
+    }
+
+    .records-badge {
+        min-width: 34px;
+        background: #e2edfc;
+        color: #1a5a8a;
+        font-weight: 800;
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+
+    .samples-badge {
+        min-width: 34px;
+        background: #ede7f8;
+        color: #6d3b9b;
+        font-weight: 800;
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+
+    .sampling-badge {
+        min-width: 34px;
+        background: #fdf0e0;
+        color: #b45f1a;
+        font-weight: 800;
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+
+    /* ----- action buttons – modern, subtle ----- */
+    .member-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .member-action {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: var(--radius-sm);
+        color: #fff;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all var(--transition);
+        flex-shrink: 0;
+        text-decoration: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .member-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
+        color: #fff;
+    }
+
+    .member-action:active {
+        transform: translateY(0);
+    }
+
+    .member-action.view {
+        background: #10b981;
+    }
+    .member-action.view:hover {
+        background: #059669;
+    }
+
+    .member-action.edit {
+        background: #f59e0b;
+    }
+    .member-action.edit:hover {
+        background: #d97706;
+    }
+
+    .member-action.toggle {
+        background: #3b82f6;
+    }
+    .member-action.toggle:hover {
+        background: #2563eb;
+    }
+
+    .member-action.reset {
+        background: #8b5cf6;
+    }
+    .member-action.reset:hover {
+        background: #7c3aed;
+    }
+
+    .member-action.delete {
+        background: #ef4444;
+    }
+    .member-action.delete:hover {
+        background: #dc2626;
+    }
+
+    /* tooltips */
+    .member-action[data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 10px);
+        left: 50%;
+        transform: translateX(-50%) translateY(4px);
+        padding: 5px 12px;
+        border-radius: 6px;
+        background: #1f2a3a;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+        z-index: 20;
+    }
+
+    .member-action[data-tooltip]:hover::after {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty-members {
+        padding: 60px 20px 50px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .empty-members .empty-icon {
+        font-size: 48px;
+        opacity: 0.4;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .empty-members h6 {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 4px;
+    }
+
+    .empty-members p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    /* ============================================================
+       RESPONSIVE BREAKPOINTS
+       ============================================================ */
+
+    /* 1200+ */
+    @media (min-width: 1200px) {
+        .member-table {
+            min-width: 1100px;
+        }
+        .member-table .col-member {
+            width: 20%;
+        }
+        .member-table .col-actions {
+            width: 18%;
+        }
+    }
+
+    /* 992–1199 */
+    @media (max-width: 1199px) {
+        .member-table {
+            min-width: 960px;
+        }
+        .member-table .col-member {
+            width: 20%;
+            min-width: 150px;
+        }
+        .member-table .col-email {
+            min-width: 110px;
+        }
+        .member-table .col-actions {
+            min-width: 160px;
+        }
+        .member-action {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+        }
+    }
+
+    /* 768–991 */
+    @media (max-width: 991px) {
+        .member-table {
+            min-width: 880px;
+            font-size: 12.5px;
+        }
+        .member-table thead th,
+        .member-table tbody td {
+            padding: 10px 12px;
+        }
+        .member-table .col-member {
+            min-width: 140px;
+        }
+        .member-table .col-email {
+            min-width: 100px;
+        }
+        .member-table .col-phone {
+            min-width: 80px;
+        }
+        .member-table .col-actions {
+            min-width: 150px;
+        }
+        .member-action {
+            width: 30px;
+            height: 30px;
+            font-size: 13px;
+        }
+        .profile-img-sm {
+            width: 36px;
+            height: 36px;
+        }
+        .member-name {
+            font-size: 12.5px;
+        }
+        .role-badge,
+        .status-badge,
+        .records-badge,
+        .samples-badge,
+        .sampling-badge {
+            font-size: 10px;
+            padding: 3px 10px;
+        }
+        .member-card-header {
+            padding: 16px 20px;
+        }
+        .member-toolbar {
+            padding: 12px 20px;
+        }
+        .member-search {
+            flex: 1 1 200px;
+            max-width: 280px;
+        }
+    }
+
+    /* < 768 */
+    @media (max-width: 767px) {
+        .page-header h3 {
+            font-size: 22px;
+        }
+        .page-header p {
+            font-size: 13px;
+        }
+        .page-header-actions {
+            width: 100%;
+        }
+        .page-header-actions .btn-primary-custom,
+        .page-header-actions .btn-report {
+            flex: 1 1 auto;
+            min-width: 120px;
+            font-size: 12px;
+            padding: 9px 16px;
+        }
+
+        .member-card-header {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 16px 18px;
+        }
+        .member-title-wrapper {
+            flex: 1;
+        }
+        .member-card-header .btn-primary-custom {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .member-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 12px 18px;
+            gap: 10px;
+        }
+        .member-search {
+            flex: 1 1 auto;
+            max-width: 100%;
+        }
+        .member-count {
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .member-table {
+            min-width: 760px;
+            font-size: 12px;
+        }
+        .member-table thead th,
+        .member-table tbody td {
+            padding: 8px 10px;
+        }
+        .member-table .col-member {
+            min-width: 130px;
+        }
+        .member-table .col-email {
+            min-width: 90px;
+        }
+        .member-table .col-phone {
+            min-width: 70px;
+        }
+        .member-table .col-role {
+            min-width: 60px;
+        }
+        .member-table .col-status {
+            min-width: 70px;
+        }
+        .member-table .col-records,
+        .member-table .col-samples,
+        .member-table .col-specimens {
+            min-width: 50px;
+        }
+        .member-table .col-actions {
+            min-width: 140px;
+        }
+
+        .profile-img-sm {
+            width: 32px;
+            height: 32px;
+        }
+        .member-name {
+            font-size: 12px;
+        }
+        .member-username {
+            font-size: 10px;
+        }
+        .member-info {
+            gap: 8px;
+        }
+
+        .member-action {
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+        }
+
+        .role-badge,
+        .status-badge,
+        .records-badge,
+        .samples-badge,
+        .sampling-badge {
+            font-size: 9px;
+            padding: 2px 8px;
+        }
+
+        .stat-card {
+            padding: 18px 20px;
+            min-height: 100px;
+        }
+        .stat-card .stat-value {
+            font-size: 26px;
+        }
+        .stat-card .stat-icon {
+            width: 42px;
+            height: 42px;
+            font-size: 20px;
+        }
+    }
+
+    /* < 480 */
+    @media (max-width: 479px) {
+        .member-table {
+            min-width: 680px;
+            font-size: 11px;
+        }
+        .member-table thead th,
+        .member-table tbody td {
+            padding: 6px 8px;
+        }
+        .member-table .col-member {
+            min-width: 110px;
+        }
+        .member-table .col-email {
+            min-width: 80px;
+        }
+        .member-table .col-phone {
+            min-width: 60px;
+        }
+        .member-table .col-actions {
+            min-width: 120px;
+        }
+        .member-action {
+            width: 26px;
+            height: 26px;
+            font-size: 11px;
+        }
+        .profile-img-sm {
+            width: 28px;
+            height: 28px;
+        }
+        .member-name {
+            font-size: 11px;
+        }
+        .member-username {
+            font-size: 9px;
+        }
+        .role-badge,
+        .status-badge,
+        .records-badge,
+        .samples-badge,
+        .sampling-badge {
+            font-size: 8px;
+            padding: 2px 6px;
+        }
+        .stat-card .stat-value {
+            font-size: 22px;
+        }
+    }
+
+    /* ============================================================
+       MODALS – clean, consistent
+       ============================================================ */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(11, 26, 43, 0.50);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    body.modal-open-custom {
+        overflow: hidden;
+    }
+
+    .modal-box {
+        width: 90%;
+        max-width: 560px;
+        max-height: 90vh;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xl);
+        animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.97);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .modal-header-custom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 700;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+    .modal-header-custom.add {
+        background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue));
+    }
+    .modal-header-custom.edit {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    .modal-header-custom.delete {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .modal-header-custom.reset {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+    .close-modal-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        transition: background var(--transition);
+    }
+    .close-modal-btn:hover {
+        background: rgba(255, 255, 255, 0.30);
+    }
+    .modal-body-custom {
+        padding: 24px;
+    }
+    .modal-footer-custom {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 16px 24px;
+        border-top: 1px solid var(--border-light);
+        background: #fafbfe;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+    }
+    .form-label-custom {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+    .form-input-custom {
+        width: 100%;
+        padding: 10px 14px;
+        border: 2px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        background: #fafbfe;
+        font-size: 14px;
+        color: var(--text-primary);
+        transition: all var(--transition);
+        outline: none;
+    }
+    .form-input-custom:focus {
+        border-color: var(--border-focus);
+        background: #fff;
+        box-shadow: 0 0 0 4px var(--cml-glow);
+    }
+    .form-check-custom {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        transition: background var(--transition);
+    }
+    .form-check-custom:hover {
+        background: #f6faff;
+    }
+    .form-check-custom input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--cml-blue);
+    }
+    .form-check-custom label {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+    .required-star {
+        color: #dc2626;
+    }
+    .btn-cancel,
+    .btn-submit {
+        padding: 10px 22px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all var(--transition);
+        border: 0;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-cancel {
+        background: #f1f4f9;
+        color: var(--text-secondary);
+    }
+    .btn-cancel:hover {
+        background: #e5e9f0;
+    }
+    .btn-submit {
+        color: #fff;
+    }
+    .btn-submit.add {
+        background: linear-gradient(135deg, var(--cml-blue), var(--cml-dark-blue));
+    }
+    .btn-submit.edit {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+    .btn-submit.delete {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .btn-submit.reset {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+    .btn-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+        color: #fff;
+    }
+
+    /* ============================================================
+       RECORDS MODAL – FIXED OVERFLOW & ALIGNMENT
+       ============================================================ */
+    .records-modal {
+        display: flex;
+        flex-direction: column;
+        width: 96%;
+        max-width: 1280px;
+        max-height: 85vh; /* FIXED: Prevents it from overflowing behind the navbar */
+        background: #fff;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-xl);
+        animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden; /* FIXED: Keeps the rounded corners and contains the content */
+    }
+    .records-modal-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start; /* FIXED: Prevents X button from misaligning vertically */
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 28px;
+        background: linear-gradient(135deg, var(--cml-dark-blue), var(--cml-blue));
+        color: #fff;
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
+        flex-shrink: 0; /* FIXED: Prevents header from being squashed */
+    }
+    .records-member-heading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 1;
+        min-width: 0;
+    }
+    .records-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        background: #eef2f6;
+        flex-shrink: 0;
+    }
+    .records-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.65);
+    }
+    .records-member-heading h4 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+    }
+    .records-member-heading span {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 13px;
+    }
+    .records-close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-size: 28px;
+        cursor: pointer;
+        transition: background var(--transition);
+        flex-shrink: 0;
+    }
+    .records-close:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+    .records-modal-body {
+        padding: 24px 28px;
+        overflow-y: auto; /* FIXED: Makes the table scroll INSIDE the modal */
+        flex: 1;
+    }
+    .records-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        background: #fafbfe;
+    }
+    .summary-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        font-size: 17px;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+    .summary-icon.blue {
+        background: #e2edfc;
+        color: #1a5a8a;
+    }
+    .summary-icon.green {
+        background: #e1f5ec;
+        color: #0b7a4a;
+    }
+    .summary-icon.purple {
+        background: #ede7f8;
+        color: #6d3b9b;
+    }
+    .summary-item strong {
+        display: block;
+        font-size: 18px;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+    .summary-item small {
+        display: block;
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 1px;
+    }
+    .records-table-container {
+        overflow-x: auto;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        -webkit-overflow-scrolling: touch;
+    }
+    .records-table {
+        width: 100%;
+        min-width: 1100px;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    .records-table th {
+        padding: 12px 14px;
+        background: #f8fafd;
+        color: #5a6d82;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        text-align: left;
+        border-bottom: 2px solid var(--border-light);
+        white-space: nowrap;
+    }
+    .records-table td {
+        padding: 11px 14px;
+        border-bottom: 1px solid #f0f3f8;
+        color: var(--text-secondary);
+        vertical-align: middle;
+    }
+    .records-table tbody tr:hover td {
+        background: #f6faff;
+    }
+    .records-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+    .record-number {
+        color: #94a8bb;
+        font-weight: 700;
+    }
+    .date-cell {
+        color: var(--cml-dark-blue) !important;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .duration-badge,
+    .small-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .duration-badge {
+        background: #e2edfc;
+        color: #1a5a8a;
+    }
+    .blue-count {
+        background: #e2edfc;
+        color: #1a5a8a;
+    }
+    .green-count {
+        background: #e1f5ec;
+        color: #0b7a4a;
+    }
+    .center-cell {
+        text-align: center;
+    }
+    .truncate-cell {
+        max-width: 170px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .truncate-cell:hover {
+        position: relative;
+        z-index: 5;
+        max-width: 300px;
+        padding: 4px 10px;
+        overflow: visible;
+        border-radius: 4px;
+        background: #fff;
+        box-shadow: var(--shadow-md);
+        white-space: normal;
+    }
+    .records-empty {
+        padding: 50px 20px;
+        text-align: center;
+        color: var(--text-muted);
+    }
+    .records-empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        background: #f1f4f9;
+        color: #94a8bb;
+        font-size: 26px;
+    }
+    .records-empty h5 {
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    .records-empty p {
+        font-size: 13px;
+    }
+    .records-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 14px 28px;
+        border-top: 1px solid var(--border-light);
+        background: #fafbfe;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+        flex-shrink: 0; /* FIXED: Keeps footer at the bottom */
+    }
+    .records-close-btn {
+        padding: 9px 22px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        background: #fff;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+    }
+    .records-close-btn:hover {
+        background: #f1f4f9;
+    }
+
+    /* ----- reset password field helpers (previously bootstrap .form-control/.text-danger) ----- */
+    .form-hint {
+        display: block;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #9aa8b9;
+    }
+    .form-error {
+        display: none;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #dc2626;
+    }
+
+    @media (max-width: 768px) {
+        .records-summary {
+            grid-template-columns: 1fr;
+        }
+        .records-modal-header {
+            padding: 16px 18px;
+        }
+        .records-modal-body {
+            padding: 16px 18px;
+        }
+        .records-modal-footer {
+            padding: 12px 18px;
+        }
+        .records-member-heading h4 {
+            font-size: 17px;
+        }
+        .records-avatar {
+            width: 40px;
+            height: 40px;
+        }
+        .records-table {
+            min-width: 900px;
+            font-size: 11px;
+        }
+        .records-table th,
+        .records-table td {
+            padding: 8px 10px;
+        }
+    }
+</style>
+
+<!-- ============================================================
+     PAGE CONTENT
+     ============================================================ -->
+<div class="container mt-4 mb-5">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h3>
+                🔧 Admin Panel
+                <span>v2.0</span>
+            </h3>
+            <p>Manage members, view records, and monitor system activity</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="/admin/report" class="btn-report">
+                📊 View Report
+            </a>
+            <button type="button" class="btn-primary-custom" onclick="openAddModal()">
+                ＋ Add Member
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card blue">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Total Members</div>
+                        <div class="stat-value">{{ members|length }}</div>
+                    </div>
+                    <div class="stat-icon">👥</div>
+                </div>
+                <div class="stat-bg-accent"></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card green">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Total Records</div>
+                        <div class="stat-value">{{ total_records }}</div>
+                    </div>
+                    <div class="stat-icon">📋</div>
+                </div>
+                <div class="stat-bg-accent"></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card purple">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Total Samples</div>
+                        <div class="stat-value">{{ total_samples_all }}</div>
+                    </div>
+                    <div class="stat-icon">🧪</div>
+                </div>
+                <div class="stat-bg-accent"></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card amber">
+                <div class="stat-content">
+                    <div>
+                        <div class="stat-label">Total Specimens</div>
+                        <div class="stat-value">{{ total_sampling }}</div>
+                    </div>
+                    <div class="stat-icon">🔬</div>
+                </div>
+                <div class="stat-bg-accent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Management Card -->
+    <div class="member-management-card">
+
+        <div class="member-card-header">
+            <div class="member-title-wrapper">
+                <div class="member-title-icon">👥</div>
+                <div>
+                    <h5>Member Management</h5>
+                    <p>Manage accounts, permissions, records, and access status</p>
+                </div>
+            </div>
+            <button type="button" class="btn-primary-custom" onclick="openAddModal()">
+                ＋ Add New Member
+            </button>
+        </div>
+
+        <div class="member-toolbar">
+            <div class="member-search">
+                <span class="search-icon">⌕</span>
+                <input
+                type="search"
+                id="memberSearch"
+                placeholder="Search members by name, email, or username…"
+                autocomplete="off"
+                aria-label="Search members"
+                >
+            </div>
+            <div class="member-count">
+                Showing <strong id="visibleCount">{{ members|length }}</strong>
+                member{{ 's' if members|length != 1 else '' }}
+            </div>
+        </div>
+
+        <!-- Table Wrapper -->
+        <div class="member-table-wrapper">
+            <table class="member-table" id="memberTable">
+                <thead>
+                    <tr>
+                        <th class="col-member" data-col="member">Member</th>
+                        <th class="col-email" data-col="email">Email</th>
+                        <th class="col-phone" data-col="phone">Phone</th>
+                        <th class="col-role" data-col="role">Role</th>
+                        <th class="col-status" data-col="status">Status</th>
+                        <th class="col-records text-center" data-col="records">Records</th>
+                        <th class="col-samples text-center" data-col="samples">Samples</th>
+                        <th class="col-specimens text-center" data-col="specimens">Specimens</th>
+                        <th class="col-actions" data-col="actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in members %}
+                    {% set stats = member_stats.get(m.id, {
+                    'record_count': 0,
+                    'total_sampling': 0,
+                    'total_samples': 0
+                    }) %}
+                    <tr class="member-row">
+                        <!-- Member - FIXED PROFILE PICTURE -->
+                        <td class="col-member">
+                            <div class="member-info">
+                                {% if m.profile_picture and m.profile_picture != 'default.png' %}
+                                    {% if m.profile_picture.startswith('http') %}
+                                        <img src="{{ m.profile_picture }}?t={{ range(1, 100) | random }}" class="profile-img-sm" alt="{{ m.full_name }}" loading="lazy">
+                                    {% else %}
+                                        <img src="{{ url_for('uploaded_file', filename=m.profile_picture) }}?t={{ range(1, 100) | random }}" class="profile-img-sm" alt="{{ m.full_name }}" loading="lazy">
+                                    {% endif %}
+                                {% else %}
+                                    <div class="profile-img-sm" style="display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, #8fb8ff, #5c8dce); color:#fff; font-weight:700; font-size:18px; text-transform:uppercase;">
+                                        {{ m.full_name[:1] }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="member-name">{{ m.full_name }}</div>
+                                    <div class="member-username">@{{ m.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Email -->
+                        <td class="col-email email-cell" title="{{ m.email or '-' }}">
+                            {{ m.email or '-' }}
+                        </td>
+
+                        <!-- Phone -->
+                        <td class="col-phone">{{ m.phone or '-' }}</td>
+
+                        <!-- Role -->
+                        <td class="col-role">
+                            <span class="role-badge {% if m.is_admin %}role-admin{% else %}role-member{% endif %}">
+                                {{ 'Admin' if m.is_admin else 'Member' }}
+                            </span>
+                        </td>
+
+                        <!-- Status -->
+                        <td class="col-status">
+                            <span class="status-badge {% if m.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                {{ 'Active' if m.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+
+                        <!-- Records -->
+                        <td class="col-records text-center">
+                            <span class="records-badge">{{ stats.record_count }}</span>
+                        </td>
+
+                        <!-- Samples -->
+                        <td class="col-samples text-center">
+                            <span class="samples-badge">{{ stats.total_samples }}</span>
+                        </td>
+
+                        <!-- Specimens -->
+                        <td class="col-specimens text-center">
+                            <span class="sampling-badge">{{ stats.total_sampling }}</span>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="col-actions">
+                            <div class="member-actions">
+                                <button
+                                type="button"
+                                class="member-action view"
+                                onclick="openViewModal('{{ m.id }}')"
+                                data-tooltip="View Records"
+                                aria-label="View records for {{ m.full_name }}"
+                                >
+                                👁
+                            </button>
+                            <button
+                            type="button"
+                            class="member-action edit"
+                            onclick="openEditModal('{{ m.id }}')"
+                            data-tooltip="Edit Member"
+                            aria-label="Edit {{ m.full_name }}"
+                            >
+                            ✎
+                        </button>
+                        <a
+                        href="/admin/toggle_member/{{ m.id }}"
+                        class="member-action toggle"
+                        data-tooltip="Toggle Status"
+                        aria-label="Toggle status for {{ m.full_name }}"
+                        >
+                        ✓
+                    </a>
+                    <a
+                    href="#"
+                    class="member-action reset reset-btn"
+                    data-id="{{ m.id }}"
+                    data-name="{{ m.full_name }}"
+                    data-tooltip="Reset Password"
+                    aria-label="Reset password for {{ m.full_name }}"
+                    >
+                    🔒
+                </a>
+                {% if m.id != session.user_id %}
+                <a
+                href="#"
+                class="member-action delete delete-btn"
+                data-id="{{ m.id }}"
+                data-name="{{ m.full_name }}"
+                data-tooltip="Delete Member"
+                aria-label="Delete {{ m.full_name }}"
+                >
+                🗑
+            </a>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<!-- Empty search state -->
+<div id="emptySearchState" class="empty-members" style="display:none;">
+    <span class="empty-icon">⌕</span>
+    <h6>No members found</h6>
+    <p>Try adjusting your search term.</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ============================================================
+     MODALS (kept clean, same functionality)
+     ============================================================ -->
+
+<!-- Add Member Modal -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal-box">
+        <div class="modal-header-custom add">
+            <span>＋ Add New Member</span>
+            <button type="button" class="close-modal-btn" onclick="closeAddModal()">×</button>
+        </div>
+        <form action="/admin/add_member" method="POST">
+            <div class="modal-body-custom">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Username <span class="required-star">*</span></label>
+                        <input type="text" name="username" class="form-input-custom" placeholder="Enter username" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Password <span class="required-star">*</span></label>
+                        <input type="password" name="password" class="form-input-custom" placeholder="Min 6 characters" minlength="6" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Full Name <span class="required-star">*</span></label>
+                        <input type="text" name="full_name" class="form-input-custom" placeholder="Enter full name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Email</label>
+                        <input type="email" name="email" class="form-input-custom" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label-custom">Phone</label>
+                    <input type="text" name="phone" class="form-input-custom" placeholder="Phone number">
+                </div>
+                <div class="form-check-custom">
+                    <input type="checkbox" name="is_admin" id="addAdmin">
+                    <label for="addAdmin">Grant Admin Access</label>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn-submit add">Add Member</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Modals -->
+{% for m in members %}
+<div class="modal-overlay" id="editModal{{ m.id }}">
+    <div class="modal-box">
+        <div class="modal-header-custom edit">
+            <span>✎ Edit {{ m.full_name }}</span>
+            <button type="button" class="close-modal-btn" onclick="closeEditModal('{{ m.id }}')">×</button>
+        </div>
+        <form action="/admin/edit_member/{{ m.id }}" method="POST">
+            <div class="modal-body-custom">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Username</label>
+                        <input type="text" name="username" class="form-input-custom" value="{{ m.username }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Full Name</label>
+                        <input type="text" name="full_name" class="form-input-custom" value="{{ m.full_name }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Email</label>
+                        <input type="email" name="email" class="form-input-custom" value="{{ m.email or '' }}" placeholder="email@example.com">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label-custom">Phone</label>
+                        <input type="text" name="phone" class="form-input-custom" value="{{ m.phone or '' }}" placeholder="Phone number">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label-custom">New Password <small style="color:#9aa8b9;">(leave blank to keep current)</small></label>
+                    <input type="password" name="new_password" class="form-input-custom" placeholder="Min 6 characters" minlength="6">
+                </div>
+                <div class="form-check-custom">
+                    <input type="checkbox" name="is_admin" id="editAdmin{{ m.id }}" {% if m.is_admin %}checked{% endif %}>
+                    <label for="editAdmin{{ m.id }}">Admin Access</label>
+                </div>
+                <div class="form-check-custom">
+                    <input type="checkbox" name="is_active" id="editActive{{ m.id }}" {% if m.is_active %}checked{% endif %}>
+                    <label for="editActive{{ m.id }}">Active Account</label>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" onclick="closeEditModal('{{ m.id }}')">Cancel</button>
+                <button type="submit" class="btn-submit edit">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<!-- View Records Modals - FIXED PROFILE PICTURE -->
+{% for m in members %}
+{% set stats = member_stats.get(m.id, {
+'record_count': 0,
+'total_sampling': 0,
+'total_samples': 0
+}) %}
+<div class="modal-overlay" id="viewModal{{ m.id }}" role="dialog" aria-modal="true" aria-labelledby="viewModalTitle{{ m.id }}">
+    <div class="records-modal">
+        <div class="records-modal-header">
+            <div class="records-member-heading">
+                {% if m.profile_picture and m.profile_picture != 'default.png' %}
+                    {% if m.profile_picture.startswith('http') %}
+                        <img src="{{ m.profile_picture }}?t={{ range(1, 100) | random }}" alt="{{ m.full_name }}" class="records-avatar" loading="lazy">
+                    {% else %}
+                        <img src="{{ url_for('uploaded_file', filename=m.profile_picture) }}?t={{ range(1, 100) | random }}" alt="{{ m.full_name }}" class="records-avatar" loading="lazy">
+                    {% endif %}
+                {% else %}
+                    <div class="records-avatar" style="display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg, #8fb8ff, #5c8dce); color:#fff; font-weight:700; font-size:20px; text-transform:uppercase;">
+                        {{ m.full_name[:1] }}
+                    </div>
+                {% endif %}
+                <div>
+                    <div class="records-eyebrow">Member Records</div>
+                    <h4 id="viewModalTitle{{ m.id }}">{{ m.full_name }}</h4>
+                    <span>@{{ m.username }}</span>
+                </div>
+            </div>
+            <button type="button" class="records-close" onclick="closeViewModal('{{ m.id }}')" aria-label="Close records modal">×</button>
+        </div>
+        <div class="records-modal-body">
+            <div class="records-summary">
+                <div class="summary-item">
+                    <div class="summary-icon blue">▣</div>
+                    <div><strong>{{ stats.record_count }}</strong><small>Total Records</small></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-icon purple">🧪</div>
+                    <div><strong>{{ stats.total_samples }}</strong><small>Total Samples</small></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-icon green">✓</div>
+                    <div><strong>{{ stats.total_sampling }}</strong><small>Total Specimens</small></div>
+                </div>
+            </div>
+
+            {% if m.records %}
+            <div class="records-table-container">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Call</th>
+                            <th>Receive</th>
+                            <th>Duration</th>
+                            <th>Clinic</th>
+                            <th>Doctor</th>
+                            <th>Samples</th>
+                            <th>Specimens</th>
+                            <th>Types</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in m.records|sort(attribute='date', reverse=true) %}
+                            {% if r.patient_count > 0 or r.total_sampling > 0 %}
+                            <tr>
+                                <td class="record-number">{{ loop.index }}</td>
+                                <td class="date-cell">{{ r.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ r.call_time or '-' }}</td>
+                                <td>{{ r.receive_time or '-' }}</td>
+                                <td>{% if r.duration %}<span class="duration-badge">{{ r.duration }}</span>{% else %}-{% endif %}</td>
+                                <td class="truncate-cell" title="{{ r.location or '-' }}">{{ r.location or '-' }}</td>
+                                <td>{{ r.doctor or '-' }}</td>
+                                <td class="center-cell"><span class="small-count blue-count">{{ r.patient_count if r.patient_count is not none else 1 }}</span></td>
+                                <td class="center-cell"><span class="small-count green-count">{{ r.total_sampling }}</span></td>
+                                <td class="truncate-cell" title="{{ r.sample_types_json|sample_types_display or '-' }}">{{ r.sample_types_json|sample_types_display or '-' }}</td>
+                                <td class="truncate-cell" title="{{ r.notes or '-' }}">{% if r.notes %}{{ r.notes[:70] }}{% if r.notes|length > 70 %}…{% endif %}{% else %}-{% endif %}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="records-empty">
+                <div class="records-empty-icon">▣</div>
+                <h5>No records available</h5>
+                <p>This member has not submitted any records yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="records-modal-footer">
+            <button type="button" class="records-close-btn" onclick="closeViewModal('{{ m.id }}')">Close</button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Delete Modal (self-contained — no Bootstrap JS dependency) -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box" style="max-width:460px;">
+        <div class="modal-header-custom delete">
+            <span>🗑 Confirm Deletion</span>
+            <button type="button" class="close-modal-btn" onclick="closeDeleteModal()">×</button>
+        </div>
+        <div class="modal-body-custom">
+            <p class="mb-0">Are you sure you want to delete <strong id="deleteMemberName"></strong>? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer-custom">
+            <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <a href="#" id="confirmDeleteBtn" class="btn-submit delete">Delete</a>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal (self-contained — no Bootstrap JS dependency) -->
+<div class="modal-overlay" id="resetPasswordModal">
+    <div class="modal-box" style="max-width:480px;">
+        <div class="modal-header-custom reset">
+            <span>🔒 Reset Password</span>
+            <button type="button" class="close-modal-btn" onclick="closeResetModal()">×</button>
+        </div>
+        <form id="resetPasswordForm" method="POST">
+            <div class="modal-body-custom">
+                <p class="mb-3">Set a new password for <strong id="resetMemberName"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label-custom">New Password</label>
+                    <input type="password" name="new_password" id="newResetPassword" class="form-input-custom" placeholder="Enter new password" minlength="6" required>
+                    <span class="form-hint">Minimum 6 characters</span>
+                </div>
+                <div>
+                    <label class="form-label-custom">Confirm Password</label>
+                    <input type="password" id="confirmResetPassword" class="form-input-custom" placeholder="Confirm new password" minlength="6" required>
+                    <div id="passwordMismatch" class="form-error">Passwords do not match.</div>
+                </div>
+            </div>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" onclick="closeResetModal()">Cancel</button>
+                <button type="submit" class="btn-submit reset">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
+     SCRIPTS (same robust functionality + column resizing)
+     ============================================================ -->
+<script>
+    /* ----- Custom Modal Functions ----- */
+    function openAddModal() {
+        const modal = document.getElementById("addModal");
+        if (modal) { modal.classList.add("active");
+            document.body.classList.add("modal-open-custom"); }
+    }
+
+    function closeAddModal() {
+        const modal = document.getElementById("addModal");
+        if (modal) { modal.classList.remove("active");
+            document.body.classList.remove("modal-open-custom"); }
+    }
+
+    function openEditModal(id) {
+        const modal = document.getElementById("editModal" + id);
+        if (modal) { modal.classList.add("active");
+            document.body.classList.add("modal-open-custom"); }
+    }
+
+    function closeEditModal(id) {
+        const modal = document.getElementById("editModal" + id);
+        if (modal) { modal.classList.remove("active");
+            document.body.classList.remove("modal-open-custom"); }
+    }
+
+    function openViewModal(id) {
+        const modal = document.getElementById("viewModal" + id);
+        if (modal) {
+            modal.classList.add("active");
+            document.body.classList.add("modal-open-custom");
+            const closeBtn = modal.querySelector(".records-close");
+            if (closeBtn) setTimeout(() => closeBtn.focus(), 100);
+        }
+    }
+
+    function closeViewModal(id) {
+        const modal = document.getElementById("viewModal" + id);
+        if (modal) { modal.classList.remove("active");
+            document.body.classList.remove("modal-open-custom"); }
+    }
+
+    /* ----- Delete Modal (vanilla — no Bootstrap dependency) ----- */
+    function openDeleteModal(id, name) {
+        const modal = document.getElementById("deleteModal");
+        const confirmBtn = document.getElementById("confirmDeleteBtn");
+        const nameEl = document.getElementById("deleteMemberName");
+        if (nameEl) nameEl.textContent = name;
+        if (confirmBtn) confirmBtn.href = "/admin/delete_member/" + id;
+        if (modal) {
+            modal.classList.add("active");
+            document.body.classList.add("modal-open-custom");
+        }
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById("deleteModal");
+        if (modal) { modal.classList.remove("active");
+            document.body.classList.remove("modal-open-custom"); }
+    }
+
+    /* ----- Reset Password Modal (vanilla — no Bootstrap dependency) ----- */
+    function openResetModal(id, name) {
+        const modal = document.getElementById("resetPasswordModal");
+        const form = document.getElementById("resetPasswordForm");
+        const nameEl = document.getElementById("resetMemberName");
+        const newPw = document.getElementById("newResetPassword");
+        const confirmPw = document.getElementById("confirmResetPassword");
+        const mismatch = document.getElementById("passwordMismatch");
+        if (nameEl) nameEl.textContent = name;
+        if (form) form.action = "/admin/reset_password/" + id;
+        if (newPw) newPw.value = "";
+        if (confirmPw) confirmPw.value = "";
+        if (mismatch) mismatch.style.display = "none";
+        if (modal) {
+            modal.classList.add("active");
+            document.body.classList.add("modal-open-custom");
+        }
+    }
+
+    function closeResetModal() {
+        const modal = document.getElementById("resetPasswordModal");
+        if (modal) { modal.classList.remove("active");
+            document.body.classList.remove("modal-open-custom"); }
+    }
+
+    /* ----- Close overlays on backdrop click / Escape -----
+       (Works automatically for deleteModal / resetPasswordModal too,
+        since they now use the same .modal-overlay pattern.) */
+    document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("modal-overlay")) {
+            e.target.classList.remove("active");
+            document.body.classList.remove("modal-open-custom");
+        }
+    });
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            document.querySelectorAll(".modal-overlay.active").forEach(function(m) {
+                m.classList.remove("active");
+            });
+            document.body.classList.remove("modal-open-custom");
+        }
+    });
+
+    /* ----- Member Search (live filter) ----- */
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("memberSearch");
+        const rows = document.querySelectorAll(".member-row");
+        const emptyState = document.getElementById("emptySearchState");
+        const visibleCount = document.getElementById("visibleCount");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function() {
+                const term = this.value.trim().toLowerCase();
+                let visible = 0;
+
+                rows.forEach(function(row) {
+                    const text = row.textContent.toLowerCase();
+                    const match = text.includes(term);
+                    row.style.display = match ? "" : "none";
+                    if (match) visible++;
+                });
+
+                if (emptyState) {
+                    emptyState.style.display = visible === 0 ? "block" : "none";
+                }
+                if (visibleCount) {
+                    visibleCount.textContent = visible;
+                }
+            });
+        }
+    });
+
+    /* ----- Delete / Reset trigger buttons -----
+       Event delegation on document so it doesn't matter whether these
+       elements existed at load time, and doesn't depend on any other
+       library having finished loading. */
+    document.addEventListener("click", function(e) {
+        const deleteBtn = e.target.closest(".delete-btn");
+        if (deleteBtn) {
+            e.preventDefault();
+            openDeleteModal(deleteBtn.getAttribute("data-id"), deleteBtn.getAttribute("data-name"));
+            return;
+        }
+        const resetBtn = e.target.closest(".reset-btn");
+        if (resetBtn) {
+            e.preventDefault();
+            openResetModal(resetBtn.getAttribute("data-id"), resetBtn.getAttribute("data-name"));
+        }
+    });
+
+    /* ----- Reset password form validation ----- */
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("resetPasswordForm");
+        const newPw = document.getElementById("newResetPassword");
+        const confirmPw = document.getElementById("confirmResetPassword");
+        const mismatch = document.getElementById("passwordMismatch");
+
+        if (form) {
+            form.addEventListener("submit", function(e) {
+                if (newPw.value !== confirmPw.value) {
+                    e.preventDefault();
+                    if (mismatch) mismatch.style.display = "block";
+                }
+            });
+        }
+
+        if (confirmPw) {
+            confirmPw.addEventListener("input", function() {
+                if (newPw.value === confirmPw.value && mismatch) {
+                    mismatch.style.display = "none";
+                }
+            });
+        }
+    });
+
+    /* ============================================================
+       COLUMN RESIZING (adds drag handles to table headers)
+       ============================================================ */
+    document.addEventListener("DOMContentLoaded", function() {
+        const table = document.getElementById("memberTable");
+        if (!table) return;
+
+        // Add a resizer element to each <th> except the last one
+        const headers = table.querySelectorAll("thead th");
+        headers.forEach(function(th, index) {
+            if (index === headers.length - 1) return; // skip last column (Actions)
+            const resizer = document.createElement("span");
+            resizer.className = "resizer";
+            resizer.setAttribute("data-col-index", index);
+            th.appendChild(resizer);
+        });
+
+        let startX, startWidth, currentCol, currentResizer;
+
+        function initResize(e) {
+            const resizer = e.target.closest(".resizer");
+            if (!resizer) return;
+            e.preventDefault();
+            currentResizer = resizer;
+            const th = resizer.closest("th");
+            currentCol = th;
+            startX = e.clientX;
+            startWidth = th.getBoundingClientRect().width;
+            resizer.classList.add("active");
+
+            document.addEventListener("mousemove", resizeColumn);
+            document.addEventListener("mouseup", stopResize);
+            document.body.style.userSelect = "none";
+            document.body.style.cursor = "col-resize";
+        }
+
+        function resizeColumn(e) {
+            if (!currentCol) return;
+            const diff = e.clientX - startX;
+            let newWidth = startWidth + diff;
+            // Enforce the column's min-width (from CSS) – we read it from the computed style
+            const minWidth = parseFloat(getComputedStyle(currentCol).minWidth) || 60;
+            if (newWidth < minWidth) newWidth = minWidth;
+            // Update the column width via the <col> element (if present) or directly on the th
+            const colIndex = Array.from(currentCol.parentNode.children).indexOf(currentCol);
+            const col = table.querySelector("colgroup")?.children[colIndex];
+            if (col) {
+                col.style.width = newWidth + "px";
+            } else {
+                currentCol.style.width = newWidth + "px";
+            }
+            // Also update any <col> if they exist – we might not have colgroup, but we can create one if needed.
+            // Simpler: set width on th itself, but table-layout:fixed uses col widths first.
+            // If no colgroup, we can create one on the fly.
+            ensureColGroup(table);
+            const colElement = table.querySelector("colgroup")?.children[colIndex];
+            if (colElement) {
+                colElement.style.width = newWidth + "px";
+            }
+        }
+
+        function stopResize() {
+            if (currentResizer) {
+                currentResizer.classList.remove("active");
+            }
+            document.removeEventListener("mousemove", resizeColumn);
+            document.removeEventListener("mouseup", stopResize);
+            document.body.style.userSelect = "";
+            document.body.style.cursor = "";
+            currentCol = null;
+            currentResizer = null;
+        }
+
+        function ensureColGroup(table) {
+            let colgroup = table.querySelector("colgroup");
+            if (!colgroup) {
+                colgroup = document.createElement("colgroup");
+                const cols = table.querySelectorAll("thead th");
+                cols.forEach(() => {
+                    const col = document.createElement("col");
+                    colgroup.appendChild(col);
+                });
+                table.prepend(colgroup);
+            }
+            // Ensure number of cols matches
+            const headerCount = table.querySelectorAll("thead th").length;
+            while (colgroup.children.length < headerCount) {
+                const col = document.createElement("col");
+                colgroup.appendChild(col);
+            }
+            // Copy current widths from th to col
+            const ths = table.querySelectorAll("thead th");
+            const cols = colgroup.children;
+            ths.forEach((th, idx) => {
+                if (idx < cols.length) {
+                    // copy width from th if set, else use computed width
+                    let w = th.style.width || th.getBoundingClientRect().width + "px";
+                    cols[idx].style.width = w;
+                }
+            });
+        }
+
+        // Attach event listeners to all resizers (delegated)
+        table.addEventListener("mousedown", function(e) {
+            if (e.target.classList.contains("resizer")) {
+                initResize(e);
+            }
+        });
+
+        // Also ensure colgroup exists after table render
+        ensureColGroup(table);
+    });
+</script>
+{% endblock %}

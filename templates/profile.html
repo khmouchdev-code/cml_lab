@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Profile - CMS{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card animate-fade-in">
+                <div class="card-body text-center">
+                    <img src="{{ member.profile_picture|profile_image_url }}?t={{ range(1, 100) | random }}"
+                         class="profile-picture-large mb-3"
+                         id="profilePreview"
+                         alt="Profile Picture">
+                    <h4>{{ member.full_name }}</h4>
+                    <p class="text-muted">@{{ member.username }}</p>
+                    {% if member.is_admin %}<span class="badge bg-danger">Admin</span>{% endif %}
+                    <hr>
+                    <div class="text-start">
+                        <p><strong>📧 Email:</strong> {{ member.email or '-' }}</p>
+                        <p><strong>📱 Phone:</strong> {{ member.phone or '-' }}</p>
+                        <p><strong>📅 Member since:</strong> {{ member_since }}</p>
+                        <p><strong>🕐 Last login:</strong> {{ member.last_login.strftime('%Y-%m-%d %H:%M') if member.last_login else 'Never' }}</p>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6"><h5>{{ total_records }}</h5><small class="text-muted">Records</small></div>
+                        <div class="col-6"><h5>{{ total_sampling }}</h5><small class="text-muted">Samples</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card animate-fade-in">
+                <div class="card-header"><h5 class="mb-0">Edit Profile</h5></div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="profileForm">
+                        <input type="hidden" name="action" value="update_profile">
+                        <div class="mb-3">
+                            <label class="form-label">Profile Picture</label>
+                            <input type="file" name="profile_picture" class="form-control" accept="image/*" id="profilePictureInput">
+                            <small class="text-muted">Max size: 500KB. Images will be automatically compressed.</small>
+                            <div id="imageSizeWarning" class="text-danger mt-1" style="display:none;"></div>
+                            <div id="compressionStatus" class="text-success mt-1" style="display:none;"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="full_name" class="form-control" value="{{ member.full_name }}" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ member.email or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="text" name="phone" class="form-control" value="{{ member.phone or '' }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Update Profile</button>
+                        <span id="savingStatus" style="display:none; margin-left: 10px; color: #6b7a8f;">
+                            <i class="fas fa-spinner fa-spin"></i> Saving...
+                        </span>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3 animate-fade-in">
+                <div class="card-header"><h5 class="mb-0">Change Password</h5></div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="action" value="change_password">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="current_password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_password" class="form-control" required minlength="6">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" name="confirm_password" class="form-control" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-warning">Change Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-picture-large {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #e8f0fe;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .card {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(26, 58, 92, 0.08);
+        transition: all 0.25s ease;
+    }
+    .card:hover {
+        box-shadow: 0 12px 40px rgba(26, 58, 92, 0.14);
+    }
+    .card-header {
+        background: #f8faff;
+        border-bottom: 2px solid #f1f5f9;
+        border-radius: 14px 14px 0 0 !important;
+        padding: 16px 24px;
+    }
+    .card-header h5 {
+        font-weight: 700;
+        color: #1a3a5c;
+    }
+    .form-control {
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus {
+        border-color: #2b5d8d;
+        box-shadow: 0 0 0 3px rgba(43, 93, 141, 0.1);
+    }
+    .btn {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 10px 28px;
+        transition: all 0.25s ease;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #1a3a5c, #2b5d8d);
+        border: none;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(26, 58, 92, 0.25);
+    }
+    .btn-warning {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        color: #fff;
+    }
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+        color: #fff;
+    }
+    .badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    @media (max-width: 768px) {
+        .profile-picture-large {
+            width: 120px;
+            height: 120px;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('profilePictureInput');
+    const form = document.getElementById('profileForm');
+    const preview = document.getElementById('profilePreview');
+    const submitBtn = document.getElementById('submitBtn');
+    const savingStatus = document.getElementById('savingStatus');
+    const warningText = document.getElementById('imageSizeWarning');
+    const compressionStatus = document.getElementById('compressionStatus');
+
+    let compressedDataUrl = null;
+
+    fileInput.addEventListener('change', function(e) {
+        const file = this.files[0];
+        if (!file) return;
+
+        // Reset status
+        warningText.style.display = 'none';
+        compressionStatus.style.display = 'none';
+        compressedDataUrl = null;
+
+        // Remove any existing hidden input
+        const existingHidden = document.querySelector('input[name="profile_image_data"]');
+        if (existingHidden) {
+            existingHidden.remove();
+        }
+
+        // Check if file is image
+        if (!file.type.startsWith('image/')) {
+            warningText.textContent = '⚠️ Please select an image file.';
+            warningText.style.display = 'block';
+            this.value = '';
+            return;
+        }
+
+        // Show warning if file is large
+        if (file.size > 500 * 1024) {
+            warningText.textContent = '⚠️ Image is ' + (file.size / 1024).toFixed(1) + 'KB. Compressing...';
+            warningText.style.display = 'block';
+            warningText.style.color = '#d97706';
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                // Compress the image
+                const canvas = document.createElement('canvas');
+                const MAX_SIZE = 150;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height = Math.round(height * MAX_SIZE / width);
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width = Math.round(width * MAX_SIZE / height);
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convert to JPEG with 60% quality
+                compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+                // Show preview with cache buster
+                preview.src = compressedDataUrl + '?t=' + Date.now();
+
+                // Show compression status
+                const compressedSize = Math.round(compressedDataUrl.length / 1024);
+                compressionStatus.textContent = '✅ Image compressed to ' + compressedSize + 'KB';
+                compressionStatus.style.display = 'block';
+                compressionStatus.style.color = '#0e6b3a';
+
+                // Hide warning if it was shown
+                warningText.style.display = 'none';
+
+                // Create hidden input with compressed data
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'profile_image_data';
+                hiddenInput.value = compressedDataUrl;
+                form.appendChild(hiddenInput);
+
+                // Clear the file input
+                fileInput.value = '';
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Show loading state on form submit
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        savingStatus.style.display = 'inline';
+    });
+});
+</script>
+{% endblock %}

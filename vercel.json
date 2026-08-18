@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ],
+  "env": {
+    "SECRET_KEY": "sokna-worked-in-cammed-2025-2026",
+    "VERCEL": "true",
+    "DATABASE_URL": "postgresql://postgres.nctryhcxgdzgeamgpsjb:sokna$$__collector@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+  }
+}
