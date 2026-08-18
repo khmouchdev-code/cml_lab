@@ -37,6 +37,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
     make_response, Response, g
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
+from flask import send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 from PIL import Image
@@ -2273,7 +2274,6 @@ def profile():
                            member_since=member_since,
                            USE_CLOUDINARY=USE_CLOUDINARY)
 
-
 @app.route('/uploads/profiles/<path:filename>')
 def uploaded_file(filename):
     """Serve profile pictures - handles both local files and Cloudinary URLs"""
@@ -2281,34 +2281,49 @@ def uploaded_file(filename):
     if filename and (filename.startswith('http://') or filename.startswith('https://')):
         return redirect(filename)
 
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    upload_folder = app.config['UPLOAD_FOLDER']
+    os.makedirs(upload_folder, exist_ok=True)
 
-    # If file doesn't exist, try to find a member profile
-    if not os.path.exists(file_path):
-        if filename.startswith('member_'):
-            # Extract member_id from filename
-            parts = filename.split('_')
-            if len(parts) >= 2:
-                member_id = parts[1]
-                # Look for any profile picture for this member
-                pattern = os.path.join(app.config['UPLOAD_FOLDER'], f"member_{member_id}_*")
+    file_path = os.path.join(upload_folder, filename)
+
+    # If file exists, serve it
+    if os.path.exists(file_path):
+        return send_from_directory(upload_folder, filename)
+
+    # Try to find a member profile
+    if filename.startswith('member_'):
+        parts = filename.split('_')
+        if len(parts) >= 2:
+            member_id = parts[1]
+            pattern = os.path.join(upload_folder, f"member_{member_id}_*")
+            try:
                 existing_files = glob.glob(pattern)
                 if existing_files:
-                    # Return the most recent one
                     latest = max(existing_files, key=os.path.getctime)
-                    return send_from_directory(app.config['UPLOAD_FOLDER'], os.path.basename(latest))
+                    return send_from_directory(upload_folder, os.path.basename(latest))
+            except Exception as e:
+                print(f"⚠️ Error: {e}")
 
-        # Fallback to default
-        default_path = os.path.join(app.config['UPLOAD_FOLDER'], 'default.png')
-        if not os.path.exists(default_path):
-            from PIL import Image
-            img = Image.new('RGB', (300, 300), color='#2b5d8d')
-            img.save(default_path)
-        filename = 'default.png'
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    # Check for default.png
+    default_path = os.path.join(upload_folder, 'default.png')
+    if os.path.exists(default_path):
+        return send_from_directory(upload_folder, 'default.png')
 
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
+    # Create default.png if it doesn't exist
+    try:
+        from io import BytesIO
+        img = Image.new('RGB', (300, 300), color='#2b5d8d')
+        img.save(default_path, 'PNG')
+        return send_from_directory(upload_folder, 'default.png')
+    except Exception as e:
+        print(f"⚠️ Could not create default: {e}")
+        # Fallback: serve from memory
+        from io import BytesIO
+        img = Image.new('RGB', (300, 300), color='#2b5d8d')
+        img_io = BytesIO()
+        img.save(img_io, 'PNG')
+        img_io.seek(0)
+        return send_file(img_io, mimetype='image/png')
 
 # ==================== OPTIMIZED MEMBERS LIST ====================
 @app.route('/members')
